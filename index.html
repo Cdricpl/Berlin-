@@ -112,8 +112,10 @@ ul.plain li{margin:5px 0}
 .pin{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
   font-family:var(--mono);font-weight:700;color:#FFF8EA;width:26px;height:26px;font-size:12px}
 .d1{background:#C97C00}.d2{background:#155F4E}.d3{background:#B3272D}.d4{background:#2A5578}.d0{background:#14110D}
+.dr{background:var(--gold);color:var(--pine-2)}
 
-#gmap{height:400px;border:1px solid var(--line);border-radius:10px;background:var(--wood-2);z-index:1}
+#gmap,#fmap{height:400px;border:1px solid var(--line);border-radius:10px;background:var(--wood-2);z-index:1}
+#fmap{height:340px}
 .leaflet-container{border-radius:10px;font-family:var(--sans)}
 .leaf-pin{background:none;border:0}
 .leaf-pin .pin{border:2px solid #FFF8EA;width:28px;height:28px;font-size:12px}
@@ -132,6 +134,7 @@ ul.plain li{margin:5px 0}
 
 .food{list-style:none;margin:0;padding:0}
 .food li{padding:10px 0;border-top:1px solid var(--line)}
+.food .fnum{width:20px;height:20px;font-size:11px;margin-right:8px;vertical-align:-4px}
 .food li:first-child{border-top:0}
 .food a{font-size:15px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line-strong)}
 .food a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
@@ -455,8 +458,25 @@ a{color:var(--pine);text-underline-offset:2px}
 <!-- ============ MANGER ============ -->
 <section class="panel" id="p-food" role="tabpanel" aria-labelledby="t-food" hidden>
 
+  <h2>Les adresses sur la carte</h2>
+  <div class="mapswitch" id="fviews">
+    <button type="button" data-view="tout" aria-pressed="true">Tout</button>
+    <button type="button" data-view="hotel" aria-pressed="false">Hôtel</button>
+    <button type="button" data-view="arena" aria-pressed="false">Arena</button>
+  </div>
+  <div id="fmap"></div>
+  <div class="daykey">
+    <span><i style="background:#E5A50A"></i>Hôtel et arena</span>
+    <span><i style="background:#14110D"></i>À pied de l'hôtel</span>
+    <span><i style="background:#C97C00"></i>Jeudi soir</span>
+    <span><i style="background:#155F4E"></i>Vendredi</span>
+    <span><i style="background:#B3272D"></i>Samedi matin</span>
+    <span><i style="background:#2A5578"></i>Autour de l'arena</span>
+  </div>
+  <p class="tip">Les numéros de la carte sont ceux des listes ci-dessous. Comme pour le programme, les tuiles se conservent au fur et à mesure : <b>faites glisser la carte une fois avant le départ</b> pour l'avoir sans réseau.</p>
+
   <h2>À pied de l'hôtel</h2>
-  <div class="card key">
+  <div class="card key" data-zone="hotel">
     <p class="sub">Tout ce qui suit est à moins de 10 minutes de marche. C'est votre filet de sécurité les soirs de retour tardif.</p>
     <ul class="food">
       <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4873228,13.4219423">Hamy Cafe</a><small>Hasenheide 10 — à 100 m de l'hôtel. Vietnamien, 11h-23h tous les jours, très bon marché</small></li>
@@ -470,7 +490,7 @@ a{color:var(--pine);text-underline-offset:2px}
   </div>
 
   <h2>Jeudi soir</h2>
-  <div class="card">
+  <div class="card" data-zone="jeudi">
     <ul class="food">
       <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5020,13.4318">Markthalle Neun</a><small>Street Food Thursday, 17h-22h. <span class="shut">Fermée le dimanche.</span> Le jeudi est votre seule occasion</small></li>
       <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4995184,13.4372086">Madame Claude</a><small>Lübbener Str. 19 — bar à concerts, 19h-2h. <span class="shut">Fermé mardi et dimanche</span></small></li>
@@ -479,7 +499,7 @@ a{color:var(--pine);text-underline-offset:2px}
   </div>
 
   <h2>Vendredi · Kreuzberg et Mitte</h2>
-  <div class="card">
+  <div class="card" data-zone="vendredi">
     <ul class="food">
       <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5043130,13.3912735">Umami Mitte</a><small>Friedrichstraße 30 — à 700 m du Musée juif, le mieux placé pour le déjeuner. Vietnamien, 11h30-23h</small></li>
       <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4896536,13.3910721">Umami Bergmannstraße</a><small>L'autre adresse, plus au sud, si vous descendez vers le Bergmannkiez</small></li>
@@ -489,14 +509,14 @@ a{color:var(--pine);text-underline-offset:2px}
   </div>
 
   <h2>Samedi matin · vers Bernauer Straße</h2>
-  <div class="card">
+  <div class="card" data-zone="samedi">
     <ul class="food">
       <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5354019,13.3948757">The Rabbit Café</a><small>Strelitzer Str. 62 — à 300 m du Mémorial du Mur, ouvre à 9h. Petit-déjeuner tardif</small></li>
     </ul>
   </div>
 
   <h2>Samedi et dimanche · autour de l'arena</h2>
-  <div class="card flag">
+  <div class="card flag" data-zone="arena">
     <p class="sub">Pour la pause d'1h30 entre les deux matchs, et pour le déjeuner du dimanche après l'East Side Gallery.</p>
     <ul class="food">
       <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5027120,13.4546857">Restaurant La Cesta</a><small>Danneckerstraße 7 — italien, à 400 m de l'arena, le plus proche. Dès 12h le week-end</small></li>
@@ -539,7 +559,8 @@ a{color:var(--pine);text-underline-offset:2px}
       p.hidden = !on;
     });
     window.scrollTo(0,0);
-    if (btn.id === 't-prog') window.__berlinMapRefresh && window.__berlinMapRefresh();
+    var shown = window.__berlinPanel && window.__berlinPanel[btn.getAttribute('aria-controls')];
+    if (shown) shown();
   }
   tabs.forEach(function(b){ b.addEventListener('click', function(){ select(b); }); });
 
@@ -612,7 +633,8 @@ a{color:var(--pine);text-underline-offset:2px}
     build();
     if (map) setTimeout(function(){ map.invalidateSize(); }, 80);
   }
-  window.__berlinMapRefresh = refresh;
+  window.__berlinPanel = window.__berlinPanel || {};
+  window.__berlinPanel['p-prog'] = refresh;
 
   function show(real){
     document.getElementById('gmap').classList.toggle('hidden', !real);
@@ -624,6 +646,128 @@ a{color:var(--pine);text-underline-offset:2px}
   document.getElementById('btn-real').addEventListener('click', function(){ show(true); });
   document.getElementById('btn-svg').addEventListener('click', function(){ show(false); });
   window.addEventListener('load', refresh);
+})();
+
+/* Carte de l'onglet Manger.
+
+   Les adresses ne sont pas recopiées ici : elles sont lues dans les listes de
+   la page, dont les liens Google Maps portent déjà les coordonnées. Ajouter un
+   restaurant à une liste suffit donc à le faire apparaître sur la carte. */
+(function(){
+  var ZONES = {
+    hotel:    'd0',
+    jeudi:    'd1',
+    vendredi: 'd2',
+    samedi:   'd3',
+    arena:    'd4'
+  };
+
+  /* Repères de lecture, aux mêmes coordonnées que sur la carte du programme. */
+  var ANCHORS = [
+    [52.4876, 13.4211, 'H', 'Hôtel Ludwig van Beethoven'],
+    [52.5063, 13.4436, 'A', 'Uber Arena']
+  ];
+
+  var map = null, built = false, VIEWS = {};
+
+  function icon(label, cls){
+    return L.divIcon({
+      className:'leaf-pin',
+      html:'<span class="pin ' + cls + '">' + label + '</span>',
+      iconSize:[28,28], iconAnchor:[14,14]
+    });
+  }
+
+  function popup(name, href){
+    return '<b>' + name + '</b><a href="' + href + '" target="_blank" rel="noopener">Ouvrir dans Google Maps</a>';
+  }
+
+  /* Parcourt les listes dans l'ordre de la page, numérote chaque adresse et
+     pose la même pastille devant son nom, pour que carte et liste se lisent
+     ensemble. */
+  function collect(){
+    var out = [], n = 0;
+    Array.prototype.forEach.call(document.querySelectorAll('#p-food .card[data-zone]'), function(card){
+      var zone = card.getAttribute('data-zone');
+      var cls = ZONES[zone] || 'd0';
+      Array.prototype.forEach.call(card.querySelectorAll('.food li'), function(li){
+        var a = li.querySelector('a');
+        if (!a) return;
+        var m = /query=(-?[\d.]+),(-?[\d.]+)/.exec(a.getAttribute('href'));
+        if (!m) return;
+        n++;
+        var badge = document.createElement('span');
+        badge.className = 'pin fnum ' + cls;
+        badge.setAttribute('aria-hidden', 'true');
+        badge.textContent = n;
+        li.insertBefore(badge, a);
+        out.push([parseFloat(m[1]), parseFloat(m[2]), String(n), a.textContent, cls, a.getAttribute('href'), zone]);
+      });
+    });
+    return out;
+  }
+
+  function build(){
+    if (built) return;
+    var host = document.getElementById('fmap');
+    if (!host) { built = true; return; }
+    if (typeof L === 'undefined'){
+      host.innerHTML = '<p style="padding:20px;font-size:14px;line-height:1.5">La carte n\'a pas pu se charger, faute de réseau. Les adresses restent listées ci-dessous.</p>';
+      built = true; return;
+    }
+    built = true;
+
+    var pts = collect(), bounds = [];
+    map = L.map('fmap', {scrollWheelZoom:false});
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
+
+    ANCHORS.forEach(function(p){
+      L.marker([p[0],p[1]], {icon:icon(p[2],'dr')}).addTo(map)
+        .bindPopup('<b>' + p[3] + '</b>');
+      bounds.push([p[0],p[1]]);
+    });
+
+    pts.forEach(function(p){
+      L.marker([p[0],p[1]], {icon:icon(p[2],p[4])}).addTo(map)
+        .bindPopup(popup(p[3], p[5]));
+      bounds.push([p[0],p[1]]);
+    });
+
+    /* Vue d'ensemble et deux gros plans : à l'échelle de Berlin, les sept
+       adresses du quartier de l'hôtel et les cinq de l'arena se chevauchent. */
+    VIEWS.tout = bounds;
+    VIEWS.hotel = zoneBounds(pts, 'hotel').concat([[ANCHORS[0][0], ANCHORS[0][1]]]);
+    VIEWS.arena = zoneBounds(pts, 'arena').concat([[ANCHORS[1][0], ANCHORS[1][1]]]);
+
+    frame('tout');
+  }
+
+  function zoneBounds(pts, zone){
+    var out = [];
+    pts.forEach(function(p){ if (p[6] === zone) out.push([p[0], p[1]]); });
+    return out;
+  }
+
+  function frame(view){
+    var b = VIEWS[view];
+    if (!map || !b || !b.length) return;
+    map.fitBounds(b, {padding:[34,34], maxZoom:16});
+    Array.prototype.forEach.call(document.querySelectorAll('#fviews button'), function(btn){
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-view') === view ? 'true' : 'false');
+    });
+  }
+
+  function refresh(){
+    build();
+    if (map) setTimeout(function(){ map.invalidateSize(); }, 80);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('#fviews button'), function(btn){
+    btn.addEventListener('click', function(){ frame(btn.getAttribute('data-view')); });
+  });
+
+  window.__berlinPanel = window.__berlinPanel || {};
+  window.__berlinPanel['p-food'] = refresh;
 })();
 </script>
 <script>

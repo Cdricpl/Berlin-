@@ -10,7 +10,9 @@ Application web hors ligne pour le séjour à Berlin du 10 au 14 septembre 2026,
 - **Trajets** — FlixTrain aller-retour, sièges, et le parking de Cologne.
 - **Berlin** — hôtel, itinéraires en transports, titres de transport, budget.
 - **Matchs** — Uber Arena, emplacement des places, horaires des quatre rencontres.
-- **Manger** — les adresses retenues, classées par moment du séjour.
+- **Manger** — les adresses retenues, classées par moment du séjour, avec leur
+  carte : numérotées comme les listes, colorées par moment, et deux gros plans
+  sur les grappes du quartier de l'hôtel et de l'arena.
 
 ## Mise en ligne
 
@@ -29,9 +31,10 @@ d'adresse.
 ## Fonctionnement hors ligne
 
 Un service worker met en cache l'application au premier chargement. Les tuiles
-de carte sont conservées au fur et à mesure de la consultation : **parcourir la
-carte une fois avant le départ** suffit à la rendre lisible sans réseau à Berlin.
-Elles ne sont jamais effacées par une mise à jour.
+de carte sont conservées au fur et à mesure de la consultation : **parcourir les
+deux cartes une fois avant le départ** — celle du programme et celle des
+restaurants, vues d'ensemble et gros plans — suffit à les rendre lisibles sans
+réseau à Berlin. Elles ne sont jamais effacées par une mise à jour.
 
 Le schéma hors ligne, lui, est dessiné dans la page et s'affiche en toutes
 circonstances.

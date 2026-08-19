@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123A31">
+<title>Berlin 2026 — carnet de voyage</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Berlin 26">
+<meta name="description" content="Carnet hors ligne du séjour à Berlin, 10 au 14 septembre 2026.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+<style>
+:root{
+  --wood:#EEDFBE; --wood-2:#E2CDA3; --paper:#FBF5E8;
+  --ink:#14110D; --ink-60:rgba(20,17,13,.62); --ink-40:rgba(20,17,13,.42);
+  --pine:#123A31; --pine-2:#0C2A23; --gold:#E5A50A; --red:#B3272D;
+  --line:rgba(20,17,13,.14); --line-strong:rgba(20,17,13,.28);
+  --mono:ui-monospace,"Roboto Mono","DejaVu Sans Mono","Courier New",monospace;
+  --sans:ui-sans-serif,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --tabh:64px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--wood);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;
+  padding-bottom:calc(var(--tabh) + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+
+.board{background:var(--pine);color:var(--wood);border-bottom:4px solid var(--gold)}
+.board-in{max-width:640px;margin:0 auto;padding:18px 16px 14px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:0 0 10px}
+.clock{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.clock-num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:64px;line-height:.86;font-weight:700;color:var(--gold);letter-spacing:-.03em}
+.clock-lab{font-size:13px;line-height:1.3;color:rgba(238,223,190,.78);max-width:220px}
+.periods{display:flex;gap:5px;margin-top:16px}
+.per{flex:1;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-align:center;padding:6px 2px;
+  border:1px solid rgba(238,223,190,.28);color:rgba(238,223,190,.6);border-radius:3px}
+.per.done{background:rgba(238,223,190,.14);color:rgba(238,223,190,.5)}
+.per.now{background:var(--gold);color:var(--pine-2);border-color:var(--gold);font-weight:700}
+
+.panel{display:none;padding:20px 0 32px}
+.panel.on{display:block}
+h2{font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin:26px 0 10px;color:var(--ink-60)}
+h2:first-child{margin-top:4px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+.card.flag{border-left:4px solid var(--red)}
+.card.key{border-left:4px solid var(--gold)}
+.card h3{margin:0 0 4px;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.sub{color:var(--ink-60);font-size:14px;margin:0 0 12px}
+.row{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-top:1px solid var(--line);font-size:14px}
+.row:first-of-type{border-top:0}
+.row dt{color:var(--ink-60);flex:0 0 auto}
+.row dd{margin:0;text-align:right;font-weight:600}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+dl{margin:0}
+
+.leg{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.leg:first-child{border-top:0;padding-top:0}
+.leg-t{font-family:var(--mono);font-size:19px;font-weight:700;flex:0 0 62px}
+.leg-p{flex:1}
+.leg-p b{display:block;font-size:15px}
+.leg-p span{font-size:13px;color:var(--ink-60)}
+
+.plate{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:.12em;text-align:center;
+  background:var(--wood-2);border:2px solid var(--ink);border-radius:6px;padding:10px;margin:10px 0 4px}
+.tip{font-size:13px;color:var(--ink-60);border-left:2px solid var(--gold);padding-left:10px;margin:12px 0 0}
+.warn{border-left-color:var(--red);color:var(--ink)}
+
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:flex;gap:11px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.tl li:first-child{border-top:0}
+.tl time{font-family:var(--mono);font-weight:700;flex:0 0 50px;padding-top:1px}
+.tl .body{flex:1}
+.tl .body a{font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line-strong)}
+.tl .body b{font-weight:600}
+.tl .body small{display:block;color:var(--ink-60);font-size:13px;margin-top:1px}
+.tl .pin{width:21px;height:21px;flex:0 0 21px;font-size:10px;margin-right:7px;vertical-align:-5px}
+
+.match{display:flex;align-items:baseline;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.match:first-of-type{border-top:0}
+.match .h{font-family:var(--mono);font-size:21px;font-weight:700;flex:0 0 62px}
+.match .n{flex:1;font-size:15px;font-weight:600}
+.match .n small{display:block;font-weight:400;color:var(--ink-60);font-size:13px}
+.match.final .n{color:var(--red)}
+
+.seatbox{display:flex;border:1px solid var(--line-strong);border-radius:8px;overflow:hidden;margin-top:12px}
+.seatbox div{flex:1;padding:11px 8px;text-align:center;border-left:1px solid var(--line)}
+.seatbox div:first-child{border-left:0}
+.seatbox .lab{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-40)}
+.seatbox .val{font-family:var(--mono);font-size:20px;font-weight:700}
+
+ul.plain{margin:8px 0 0;padding-left:18px;font-size:14px}
+ul.plain li{margin:5px 0}
+
+.check{list-style:none;margin:0;padding:0}
+.check li{border-top:1px solid var(--line)}
+.check li:first-child{border-top:0}
+.check label{display:flex;gap:11px;align-items:flex-start;padding:11px 2px;cursor:pointer;font-size:15px}
+.check input{appearance:none;-webkit-appearance:none;flex:0 0 21px;height:21px;margin:1px 0 0;
+  border:2px solid var(--line-strong);border-radius:5px;background:transparent;cursor:pointer}
+.check input:checked{background:var(--pine);border-color:var(--pine)}
+.check input:checked+span{text-decoration:line-through;color:var(--ink-40)}
+.check input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);
+  margin-top:10px;padding-top:10px;font-weight:700}
+.total .num{font-size:21px}
+
+.pin{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;color:#FFF8EA;width:26px;height:26px;font-size:12px}
+.d1{background:#C97C00}.d2{background:#155F4E}.d3{background:#B3272D}.d4{background:#2A5578}.d0{background:#14110D}
+
+#gmap{height:400px;border:1px solid var(--line);border-radius:10px;background:var(--wood-2);z-index:1}
+.leaflet-container{border-radius:10px;font-family:var(--sans)}
+.leaf-pin{background:none;border:0}
+.leaf-pin .pin{border:2px solid #FFF8EA;width:28px;height:28px;font-size:12px}
+.leaflet-popup-content{margin:10px 12px;font-size:14px;line-height:1.4}
+.leaflet-popup-content b{display:block;margin-bottom:2px}
+.mapswitch{display:flex;gap:8px;margin-bottom:10px}
+.mapswitch button{flex:1;padding:9px 6px;cursor:pointer;background:var(--paper);
+  border:1px solid var(--line-strong);border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink)}
+.mapswitch button[aria-pressed="true"]{background:var(--pine);border-color:var(--pine);color:var(--wood)}
+.mapswitch button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.hidden{display:none !important}
+.map{width:100%;height:auto;display:block;background:var(--paper);border:1px solid var(--line);border-radius:10px}
+.daykey{display:flex;flex-wrap:wrap;gap:11px;margin:10px 0 0;font-size:12px;color:var(--ink-60)}
+.daykey span{display:flex;align-items:center;gap:5px}
+.daykey i{width:11px;height:11px;border-radius:50%;display:inline-block}
+
+.food{list-style:none;margin:0;padding:0}
+.food li{padding:10px 0;border-top:1px solid var(--line)}
+.food li:first-child{border-top:0}
+.food a{font-size:15px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line-strong)}
+.food a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.food small{display:block;font-size:13px;color:var(--ink-60);margin-top:2px}
+.food .shut{color:var(--red);font-weight:600}
+
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--pine);
+  border-top:1px solid var(--pine-2);padding-bottom:env(safe-area-inset-bottom)}
+.tabs-in{max-width:640px;margin:0 auto;display:flex}
+.tabs button{flex:1;background:none;border:0;cursor:pointer;padding:9px 2px 11px;color:rgba(238,223,190,.6);
+  font-family:var(--sans);font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  display:flex;flex-direction:column;align-items:center;gap:4px;border-top:3px solid transparent;
+  min-height:var(--tabh);justify-content:center}
+.tabs button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-selected="true"]{color:var(--gold);border-top-color:var(--gold)}
+.tabs button:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}
+
+footer{font-size:12px;color:var(--ink-40);text-align:center;padding:18px 0 6px}
+a{color:var(--pine);text-underline-offset:2px}
+
+@media (prefers-reduced-motion:no-preference){
+  .panel.on{animation:fade .22s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+}
+@media (min-width:700px){.clock-num{font-size:78px}}
+
+.toast{position:fixed;left:50%;bottom:calc(var(--tabh) + env(safe-area-inset-bottom) + 12px);
+  transform:translateX(-50%) translateY(14px);z-index:40;max-width:calc(100% - 32px);
+  background:var(--pine-2);color:var(--wood);font-size:13px;font-weight:600;text-align:center;
+  padding:9px 16px;border:1px solid var(--gold);border-radius:999px;
+  box-shadow:0 6px 18px rgba(20,17,13,.28);opacity:0;pointer-events:none;
+  transition:opacity .22s ease,transform .22s ease}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="board">
+  <div class="board-in">
+    <p class="eyebrow">Berlin · 10 → 14 septembre 2026</p>
+    <div class="clock">
+      <span class="clock-num" id="cd">—</span>
+      <span class="clock-lab" id="cdlab">avant le départ</span>
+    </div>
+    <div class="periods" id="periods"></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ PROGRAMME ============ -->
+<section class="panel on" id="p-prog" role="tabpanel" aria-labelledby="t-prog">
+
+  <div class="mapswitch">
+    <button type="button" id="btn-real" aria-pressed="true">Carte</button>
+    <button type="button" id="btn-svg" aria-pressed="false">Schéma hors ligne</button>
+  </div>
+  <div id="gmap"></div>
+  <svg class="map hidden" id="svgmap" viewBox="0 0 360 442" role="img" aria-label="Schéma de Berlin situant l'hôtel, l'arena et les lieux de visite, avec la ligne U8 et la Spree.">
+    <path d="M15 128 Q70 118 110 140 T190 168 Q250 195 300 232 T348 272" fill="none" stroke="#8FB6C4" stroke-width="7" stroke-linecap="round" opacity=".55"/>
+    <path d="M114 50 L201 132 L219 273 L244 350" fill="none" stroke="#14110D" stroke-width="2" stroke-dasharray="5 5" opacity=".45"/>
+    <text x="238" y="308" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="#14110D" opacity=".5">U8</text>
+    <g font-family="ui-monospace,monospace" font-size="10" font-weight="700" fill="#FFF8EA" text-anchor="middle">
+      <circle cx="37" cy="112" r="11" fill="#14110D"/><text x="37" y="115">G</text>
+      <circle cx="231" cy="344" r="11" fill="#14110D"/><text x="231" y="347">H</text>
+      <circle cx="316" cy="228" r="11" fill="#14110D"/><text x="316" y="231">A</text>
+      <circle cx="288" cy="397" r="10" fill="#C97C00"/><text x="288" y="400">1</text>
+      <circle cx="271" cy="255" r="10" fill="#C97C00"/><text x="271" y="258">2</text>
+      <circle cx="134" cy="252" r="10" fill="#155F4E"/><text x="134" y="255">3</text>
+      <circle cx="89" cy="227" r="10" fill="#155F4E"/><text x="89" y="230">4</text>
+      <circle cx="72" cy="182" r="10" fill="#155F4E"/><text x="72" y="185">5</text>
+      <circle cx="60" cy="163" r="10" fill="#155F4E"/><text x="60" y="166">6</text>
+      <circle cx="52" cy="145" r="10" fill="#155F4E"/><text x="52" y="148">7</text>
+      <circle cx="114" cy="50" r="10" fill="#B3272D"/><text x="114" y="53">8</text>
+      <circle cx="201" cy="132" r="10" fill="#B3272D"/><text x="201" y="135">9</text>
+      <circle cx="160" cy="152" r="10" fill="#B3272D"/><text x="160" y="155">10</text>
+      <circle cx="298" cy="236" r="10" fill="#2A5578"/><text x="298" y="239">11</text>
+      <circle cx="324" cy="258" r="10" fill="#2A5578"/><text x="324" y="261">12</text>
+    </g>
+  </svg>
+  <div class="daykey">
+    <span><i class="d1"></i>Jeudi</span><span><i class="d2"></i>Vendredi</span>
+    <span><i class="d3"></i>Samedi</span><span><i class="d4"></i>Dimanche</span>
+    <span><i class="d0"></i>Points fixes</span>
+  </div>
+
+  <h2>Jeudi 10 · la route</h2>
+  <div class="card">
+    <ul class="tl">
+      <li><time>09:30</time><span class="body"><b>Départ de Stavelot</b><small>Environ 1h45 jusqu'à Cologne</small></span></li>
+      <li><time>10:30</time><span class="body"><b>Q-Park Börsenplatz</b><small>Début de la réservation, plaque 2AFQ121</small></span></li>
+      <li><time>12:14</time><span class="body"><b>FlixTrain, Köln Hbf</b><small>Voiture 4, sièges 24A et 24B</small></span></li>
+      <li><time>17:20</time><span class="body"><b>Berlin Hbf</b><small>Bus M41 direct jusqu'à Hermannplatz</small></span></li>
+      <li><time>18:00</time><span class="body"><b>Hôtel</b><small>Dépose des bagages, ressortir vers 18h45</small></span></li>
+      <li><time>19:00</time><span class="body"><span class="pin d1">1</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4790,13.4362">Klunkerkranich</a><small>Toit des Neukölln Arcaden, 10 min à pied. Coucher de soleil vers 19h45</small></span></li>
+      <li><time>20:15</time><span class="body"><span class="pin d1">2</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5020,13.4318">Markthalle Neun</a><small>Street Food Thursday jusqu'à 22h, le seul soir de la semaine</small></span></li>
+    </ul>
+  </div>
+
+  <h2>Vendredi 11 · journée pleine</h2>
+  <div class="card">
+    <ul class="tl">
+      <li><time>09:45</time><span class="body"><span class="pin d2">3</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5024,13.3953">Musée juif de Berlin</a><small>Seule date possible, fermé les 12 et 13 pour Rosh ha-Shana. Permanent gratuit, billet horodaté conseillé, 2h30</small></span></li>
+      <li><time>12:45</time><span class="body"><b>Déjeuner à Kreuzberg</b><small>Avant de remonter à pied vers Mitte</small></span></li>
+      <li><time>14:00</time><span class="body"><span class="pin d2">4</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5065,13.3833">Topographie des Terrors</a><small>200 m de mur d'origine, exposition gratuite. Checkpoint Charlie est sur le chemin, un coup d'œil suffit</small></span></li>
+      <li><time>15:45</time><span class="body"><span class="pin d2">5</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5139,13.3789">Mémorial aux Juifs assassinés d'Europe</a><small>Champ de stèles d'Eisenman</small></span></li>
+      <li><time>16:30</time><span class="body"><span class="pin d2">6</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5163,13.3777">Porte de Brandebourg</a><small>Le temps d'une photo</small></span></li>
+      <li><time>16:50</time><span class="body"><span class="pin d2">7</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5186,13.3761">Reichstag</a><small>Extérieur et berges de la Spree</small></span></li>
+    </ul>
+    <p class="tip">Tout s'enchaîne à pied depuis le musée, sans reprendre le métro.</p>
+  </div>
+
+  <h2>Samedi 12 · demi-finales</h2>
+  <div class="card flag">
+    <ul class="tl">
+      <li><time>10:00</time><span class="body"><span class="pin d3">8</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5352,13.3899">Mémorial du Mur, Bernauer Straße</a><small>U8 direct depuis Hermannplatz. Bande de la mort, mirador, parcours de 1,3 km. Documentation gratuite</small></span></li>
+      <li><time>12:00</time><span class="body"><span class="pin d3">9</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5219,13.4132">Horloge universelle</a><small>Alexanderplatz, même ligne U8</small></span></li>
+      <li><time>12:45</time><span class="body"><span class="pin d3">10</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5192,13.4010">Berliner Dom</a><small>À 10 min à pied, si le temps le permet</small></span></li>
+      <li><time>15:30</time><span class="body"><b>Départ vers l'arena</b><small>U8 puis U1 jusqu'à Warschauer Straße, 25 min</small></span></li>
+      <li><time>16:30</time><span class="body"><b>Demi-finale 1</b></span></li>
+      <li><time>18:15</time><span class="body"><b>Pause</b><small>Restaurants côté Warschauer Straße</small></span></li>
+      <li><time>20:00</time><span class="body"><b>Demi-finale 2</b></span></li>
+      <li><time>22:30</time><span class="body"><b>Retour à l'hôtel</b></span></li>
+    </ul>
+    <p class="tip warn">Matinée volontairement courte. Si vous devez couper, gardez Bernauer Straße et rentrez.</p>
+  </div>
+
+  <h2>Dimanche 13 · la finale</h2>
+  <div class="card flag">
+    <ul class="tl">
+      <li><time>09:30</time><span class="body"><b>Valises bouclées</b><small>Le lundi commence à 6h45</small></span></li>
+      <li><time>10:30</time><span class="body"><span class="pin d4">11</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5050,13.4394">East Side Gallery</a><small>1,3 km de fresques le long de la Spree, d'ouest en est</small></span></li>
+      <li><time>11:45</time><span class="body"><span class="pin d4">12</span><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5018,13.4457">Pont Oberbaum et Wall Museum</a><small>Au bout de la galerie, puis une heure au musée</small></span></li>
+      <li><time>13:30</time><span class="body"><b>Déjeuner</b><small>L'arena est à 10 min à pied</small></span></li>
+      <li><time>16:30</time><span class="body"><b>Match pour la 3e place</b></span></li>
+      <li><time>20:00</time><span class="body"><b>Finale</b><small>Titre mondial</small></span></li>
+      <li><time>23:15</time><span class="body"><b>Retour à l'hôtel</b><small>Après la remise des trophées</small></span></li>
+    </ul>
+  </div>
+
+  <h2>Lundi 14 · le retour</h2>
+  <div class="card key">
+    <ul class="tl">
+      <li><time>06:45</time><span class="body"><b>Lever</b></span></li>
+      <li><time>07:45</time><span class="body"><b>Départ de l'hôtel</b><small>Clé rendue à la réception de nuit, prévenue la veille</small></span></li>
+      <li><time>08:39</time><span class="body"><b>FlixTrain, Berlin Hbf</b><small>Voiture 5, sièges 24C et 24D. Petit-déjeuner dans le train</small></span></li>
+      <li><time>13:41</time><span class="body"><b>Köln Hbf</b></span></li>
+      <li><time>15:30</time><span class="body"><b>Stavelot</b></span></li>
+    </ul>
+  </div>
+
+  <h2>Trois fois le Mur</h2>
+  <div class="card">
+    <ul class="plain">
+      <li><b>Topographie des Terrors</b> — mur d'origine, criblé par les chasseurs de souvenirs de 1989.</li>
+      <li><b>Bernauer Straße</b> — le dispositif complet : mur, no man's land, mirador. Le seul endroit où l'on comprend que ce n'était pas une cloison mais un système.</li>
+      <li><b>East Side Gallery</b> — la plus longue portion debout, mais peinte après la chute.</li>
+    </ul>
+  </div>
+
+  <h2>Écarté volontairement</h2>
+  <div class="card">
+    <ul class="plain">
+      <li>Musée de Pergame — fermé.</li>
+      <li>Urban Nation, Siegessäule — hors de tous vos trajets.</li>
+      <li>Volkspark Friedrichshain, HUMANA — bons candidats si vous préférez une matinée de samedi plus calme qu'Alexanderplatz.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ TRAJETS ============ -->
+<section class="panel" id="p-trajet" role="tabpanel" aria-labelledby="t-trajet" hidden>
+  <h2>Train — FlixTrain FLX30</h2>
+  <div class="card key">
+    <h3>Aller · jeudi 10 septembre</h3>
+    <div class="leg"><span class="leg-t">12:14</span><span class="leg-p"><b>Köln Hauptbahnhof</b><span>Trankgasse 11, 50667 Köln</span></span></div>
+    <div class="leg"><span class="leg-t">17:20</span><span class="leg-p"><b>Berlin Hauptbahnhof</b><span>Europaplatz 1, 10557 Berlin</span></span></div>
+    <div class="seatbox">
+      <div><span class="lab">Voiture</span><span class="val">4</span></div>
+      <div><span class="lab">Wivine</span><span class="val">24A</span></div>
+      <div><span class="lab">Cédric</span><span class="val">24B</span></div>
+    </div>
+  </div>
+  <div class="card key">
+    <h3>Retour · lundi 14 septembre</h3>
+    <div class="leg"><span class="leg-t">08:39</span><span class="leg-p"><b>Berlin Hauptbahnhof</b><span>Europaplatz 1, 10557 Berlin</span></span></div>
+    <div class="leg"><span class="leg-t">13:41</span><span class="leg-p"><b>Köln Hauptbahnhof</b><span>Trankgasse 11, 50667 Köln</span></span></div>
+    <div class="seatbox">
+      <div><span class="lab">Voiture</span><span class="val">5</span></div>
+      <div><span class="lab">Wivine</span><span class="val">24C</span></div>
+      <div><span class="lab">Cédric</span><span class="val">24D</span></div>
+    </div>
+    <p class="tip warn">Le numéro de voiture change entre l'aller et le retour. Vérifiez-le sur le quai.</p>
+  </div>
+  <div class="card">
+    <dl>
+      <div class="row"><dt>Réservation</dt><dd class="num">338 597 1988</dd></div>
+      <div class="row"><dt>Payé</dt><dd class="num">90,72 €</dd></div>
+      <div class="row"><dt>Bagage à main</dt><dd class="num">7 kg · 42×30×18</dd></div>
+      <div class="row"><dt>Bagage en soute</dt><dd class="num">10 kg · 55×40×21</dd></div>
+    </dl>
+    <p class="tip">Gardez l'application Flix installée pour les retards et changements de quai. Le billet papier reste le filet de sécurité.</p>
+  </div>
+
+  <h2>Voiture et parking</h2>
+  <div class="card key">
+    <h3>Q-Park Börsenplatz, Cologne</h3>
+    <p class="sub">Environ 8 minutes à pied de la gare</p>
+    <div class="plate">2AFQ121</div>
+    <p class="tip">La barrière s'ouvre à la lecture de la plaque. En cas d'échec, scannez le QR de la confirmation.</p>
+    <dl>
+      <div class="row"><dt>Entrée réservée</dt><dd class="num">10/09 · 10:30</dd></div>
+      <div class="row"><dt>Sortie réservée</dt><dd class="num">14/09 · 17:00</dd></div>
+      <div class="row"><dt>Payé</dt><dd class="num">55,50 €</dd></div>
+    </dl>
+    <p class="tip warn">Rampes et places étroites, pas d'ascenseur.</p>
+  </div>
+</section>
+
+<!-- ============ BERLIN ============ -->
+<section class="panel" id="p-berlin" role="tabpanel" aria-labelledby="t-berlin" hidden>
+  <h2>Hôtel</h2>
+  <div class="card key">
+    <h3>Hotel Ludwig van Beethoven</h3>
+    <p class="sub">Hasenheide 14, 10967 Berlin · Neukölln</p>
+    <dl>
+      <div class="row"><dt>Check-in</dt><dd class="num">10/09 · 15:00</dd></div>
+      <div class="row"><dt>Check-out</dt><dd class="num">14/09 · 11:00</dd></div>
+      <div class="row"><dt>Référence</dt><dd class="num">72075967154572</dd></div>
+      <div class="row"><dt>Payé · 4 nuits</dt><dd class="num">434,43 €</dd></div>
+    </dl>
+    <p class="tip">Prévenez la réception dès le dimanche soir de votre départ à 7h45.</p>
+  </div>
+
+  <h2>Se déplacer</h2>
+  <div class="card">
+    <h3>Gare centrale → hôtel</h3>
+    <ul class="plain">
+      <li><b>Bus M41</b> depuis Berlin Hbf jusqu'à Hermannplatz, sans changement.</li>
+      <li>Ou <b>U5</b> jusqu'à Alexanderplatz puis <b>U8</b> jusqu'à Hermannplatz.</li>
+      <li>30 à 35 minutes, puis 300 m à pied.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Hôtel → Uber Arena</h3>
+    <ul class="plain">
+      <li><b>U8</b> de Hermannplatz à Kottbusser Tor, puis <b>U1</b> jusqu'à Warschauer Straße.</li>
+      <li>8 minutes à pied ensuite. 25 minutes porte à porte.</li>
+    </ul>
+    <p class="tip">L'hôtel, Alexanderplatz et Bernauer Straße sont tous les trois sur l'U8, sans changement.</p>
+  </div>
+  <div class="card">
+    <h3>Titres de transport</h3>
+    <p class="sub">La zone AB suffit partout : gare, hôtel, arena.</p>
+    <dl>
+      <div class="row"><dt>Ticket simple AB</dt><dd class="num">5,00 €</dd></div>
+      <div class="row"><dt>WelcomeCard 72h AB</dt><dd class="num">39,50 €</dd></div>
+      <div class="row"><dt>Abonnement 7 jours AB</dt><dd class="num">43,50 €</dd></div>
+    </dl>
+    <p class="tip">Urgences dans toute l'Union européenne : 112.</p>
+    <p class="tip warn">Une WelcomeCard 72h validée jeudi à 17h30 expire dimanche à 17h30, avant la finale et avant le trajet du lundi. L'abonnement 7 jours couvre tout sans trou.</p>
+  </div>
+
+  <h2>Budget</h2>
+  <div class="card">
+    <dl>
+      <div class="row"><dt>Hôtel · 4 nuits</dt><dd class="num">434,43 €</dd></div>
+      <div class="row"><dt>Billets FIBA · 2 pers</dt><dd class="num">198,00 €</dd></div>
+      <div class="row"><dt>FlixTrain A/R</dt><dd class="num">90,72 €</dd></div>
+      <div class="row"><dt>Parking Cologne</dt><dd class="num">55,50 €</dd></div>
+    </dl>
+    <div class="total"><span>Déjà payé</span><span class="num">778,65 €</span></div>
+    <p class="tip">Reste à prévoir : transports ~85 €, repas 200 à 280 €, visites 60 à 80 €, carburant ~30 €. Prévisionnel global 1 150 à 1 250 € pour deux.</p>
+  </div>
+</section>
+
+<!-- ============ MATCHS ============ -->
+<section class="panel" id="p-match" role="tabpanel" aria-labelledby="t-match" hidden>
+  <h2>Uber Arena</h2>
+  <div class="card key">
+    <h3>Vos places</h3>
+    <p class="sub">Uber-Platz 1, 10243 Berlin · Friedrichshain</p>
+    <div class="seatbox">
+      <div><span class="lab">Bloc</span><span class="val">401</span></div>
+      <div><span class="lab">Rangée</span><span class="val">9</span></div>
+      <div><span class="lab">Sièges</span><span class="val">11·12</span></div>
+    </div>
+    <p class="tip">Niveau 400, grand côté du terrain, vers le coin. Vue latérale dégagée sur toute la longueur du parquet.</p>
+  </div>
+  <div class="card flag">
+    <h3>Samedi 12 septembre</h3>
+    <div class="match"><span class="h">16:30</span><span class="n">Demi-finale 1</span></div>
+    <div class="match"><span class="h">20:00</span><span class="n">Demi-finale 2</span></div>
+  </div>
+  <div class="card flag">
+    <h3>Dimanche 13 septembre</h3>
+    <div class="match"><span class="h">16:30</span><span class="n">Match pour la 3e place<small>La « petite finale »</small></span></div>
+    <div class="match final"><span class="h">20:00</span><span class="n">Finale<small>Titre mondial</small></span></div>
+  </div>
+  <div class="card">
+    <dl>
+      <div class="row"><dt>Billet</dt><dd>Final Weekend · 2 sessions</dd></div>
+      <div class="row"><dt>Catégorie</dt><dd class="num">4</dd></div>
+      <div class="row"><dt>Payé · 2 pers</dt><dd class="num">198,00 €</dd></div>
+    </dl>
+    <p class="tip warn">Les horaires de coup d'envoi sont provisoires. Vérifiez fiba.basketball la veille de chaque journée.</p>
+  </div>
+
+  <h2>Les Belgian Cats</h2>
+  <div class="card flag">
+    <p class="sub">5e nation mondiale, doubles championnes d'Europe. Groupe C avec l'Australie, Porto Rico et la Turquie.</p>
+    <ul class="plain">
+      <li>Phase de groupes du 4 au 7 septembre, avant votre arrivée.</li>
+      <li>Le vainqueur de groupe file en quarts ; les 2e et 3e passent par un barrage.</li>
+      <li>Si la Belgique atteint les demi-finales, vous la voyez jouer les deux soirs.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ MANGER ============ -->
+<section class="panel" id="p-food" role="tabpanel" aria-labelledby="t-food" hidden>
+
+  <h2>À pied de l'hôtel</h2>
+  <div class="card key">
+    <p class="sub">Tout ce qui suit est à moins de 10 minutes de marche. C'est votre filet de sécurité les soirs de retour tardif.</p>
+    <ul class="food">
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4873228,13.4219423">Hamy Cafe</a><small>Hasenheide 10 — à 100 m de l'hôtel. Vietnamien, 11h-23h tous les jours, très bon marché</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4879450,13.4191314">Ristorante Masaniello</a><small>Hasenheide 20 — italien. Ouvre à 14h en semaine, dès 12h samedi et dimanche</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4886948,13.4244107">Nefis Gemüse Kebap</a><small>Kottbusser Damm 34 — jusqu'à 1h en semaine, 2h le week-end</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4863576,13.4235347">Sweet Jamaica Food</a><small>Hasenheide 117 — 12h-22h tous les jours</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4872282,13.4316353">Oliveto · Ristorante &amp; Pizzeria</a><small>Pannierstraße 9a — italien, 12h-23h tous les jours</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4874099,13.4271533">Al Faisal Grills</a><small>Sonnenallee 13 — shawarma, ouvert jusqu'à 2h. La solution des retours d'arena</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4867032,13.4221881">Burgermeister Hermannplatz</a><small>Hasenheide 113 — jusqu'à 1h tous les jours</small></li>
+    </ul>
+  </div>
+
+  <h2>Jeudi soir</h2>
+  <div class="card">
+    <ul class="food">
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5020,13.4318">Markthalle Neun</a><small>Street Food Thursday, 17h-22h. <span class="shut">Fermée le dimanche.</span> Le jeudi est votre seule occasion</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4995184,13.4372086">Madame Claude</a><small>Lübbener Str. 19 — bar à concerts, 19h-2h. <span class="shut">Fermé mardi et dimanche</span></small></li>
+    </ul>
+    <p class="tip">Si le train a du retard et que vous arrivez après 19h30, sautez Klunkerkranich et filez directement à la Markthalle.</p>
+  </div>
+
+  <h2>Vendredi · Kreuzberg et Mitte</h2>
+  <div class="card">
+    <ul class="food">
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5043130,13.3912735">Umami Mitte</a><small>Friedrichstraße 30 — à 700 m du Musée juif, le mieux placé pour le déjeuner. Vietnamien, 11h30-23h</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4896536,13.3910721">Umami Bergmannstraße</a><small>L'autre adresse, plus au sud, si vous descendez vers le Bergmannkiez</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.4934850,13.3885619">Mustafa's Gemüse Kebap</a><small>Mehringdamm 33 — célèbre, mais files très longues et aucune place assise. Ouvre à 14h le vendredi</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5285831,13.3878853">Schnitzelei Mitte</a><small>Chausseestr. 8 — allemand, pour le dîner après le Reichstag. Ouvre à 16h, réservation conseillée</small></li>
+    </ul>
+  </div>
+
+  <h2>Samedi matin · vers Bernauer Straße</h2>
+  <div class="card">
+    <ul class="food">
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5354019,13.3948757">The Rabbit Café</a><small>Strelitzer Str. 62 — à 300 m du Mémorial du Mur, ouvre à 9h. Petit-déjeuner tardif</small></li>
+    </ul>
+  </div>
+
+  <h2>Samedi et dimanche · autour de l'arena</h2>
+  <div class="card flag">
+    <p class="sub">Pour la pause d'1h30 entre les deux matchs, et pour le déjeuner du dimanche après l'East Side Gallery.</p>
+    <ul class="food">
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5027120,13.4546857">Restaurant La Cesta</a><small>Danneckerstraße 7 — italien, à 400 m de l'arena, le plus proche. Dès 12h le week-end</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5035218,13.4471179">Urban Falafel</a><small>Warschauer Str. 47 — rapide et bon marché, jusqu'à 4h le week-end</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5035935,13.4471876">Bro Burger</a><small>Warschauer Str. 47 — même adresse, jusqu'à 4h le week-end</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5051748,13.4483934">Brasserie Dandelion</a><small>Warschauer Str. 36 — japonais. <span class="shut">Samedi uniquement pour vous</span> : fermé le dimanche, et 12h-16h seulement en semaine. Le samedi jusqu'à 21h</small></li>
+      <li><a href="https://www.google.com/maps/search/?api=1&amp;query=52.5102112,13.4596693">BURGERAMT</a><small>Krossener Str. 21 — Boxhagener Platz, 15 min à pied de l'arena. Jusqu'à 1h le week-end</small></li>
+    </ul>
+    <p class="tip warn">Brasserie Dandelion est le seul de la liste que vous risquez de manquer. Si vous y tenez, ce sera la pause du samedi entre les deux demi-finales.</p>
+  </div>
+</section>
+
+<footer>Carnet hors ligne · Berlin 2026</footer>
+</main>
+
+<nav class="tabs" role="tablist" aria-label="Sections du carnet">
+  <div class="tabs-in">
+    <button role="tab" id="t-prog" aria-controls="p-prog" aria-selected="true">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>Programme</button>
+    <button role="tab" id="t-trajet" aria-controls="p-trajet" aria-selected="false">
+      <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M8 21l-2-4M16 21l2-4"/></svg>Trajets</button>
+    <button role="tab" id="t-berlin" aria-controls="p-berlin" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg>Berlin</button>
+    <button role="tab" id="t-match" aria-controls="p-match" aria-selected="false">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>Matchs</button>
+    <button role="tab" id="t-food" aria-controls="p-food" aria-selected="false">
+      <svg viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 004 0V3M8 11v10M18 3c-1.5 1.5-2 3.5-2 6v3h4M18 12v9"/></svg>Manger</button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tabs button'));
+  function select(btn){
+    tabs.forEach(function(b){
+      var on = b === btn;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      var p = document.getElementById(b.getAttribute('aria-controls'));
+      p.classList.toggle('on', on);
+      p.hidden = !on;
+    });
+    window.scrollTo(0,0);
+    if (btn.id === 't-prog') window.__berlinMapRefresh && window.__berlinMapRefresh();
+  }
+  tabs.forEach(function(b){ b.addEventListener('click', function(){ select(b); }); });
+
+  var days = ['2026-09-10','2026-09-11','2026-09-12','2026-09-13','2026-09-14'];
+  var today = new Date(); today.setHours(0,0,0,0);
+  var start = new Date('2026-09-10T00:00:00');
+  var diff = Math.round((start - today) / 86400000);
+  var box = document.getElementById('periods');
+  days.forEach(function(d, i){
+    var el = document.createElement('span');
+    el.className = 'per';
+    el.textContent = 'J' + (i+1);
+    var dd = new Date(d + 'T00:00:00');
+    if (dd.getTime() === today.getTime()) el.classList.add('now');
+    else if (dd < today) el.classList.add('done');
+    box.appendChild(el);
+  });
+  var num = document.getElementById('cd'), lab = document.getElementById('cdlab');
+  if (diff > 0){ num.textContent = diff; lab.textContent = diff === 1 ? 'jour avant le départ' : 'jours avant le départ'; }
+  else if (diff === 0){ num.textContent = '0'; lab.textContent = "c'est aujourd'hui — train à 12h14"; }
+  else if (diff >= -4){ num.textContent = 'J' + (1 - diff); lab.textContent = 'du séjour à Berlin'; }
+  else { num.textContent = 'fin'; lab.textContent = 'séjour terminé'; }
+})();
+
+(function(){
+  var PTS = [
+    [52.5251,13.3694,'G','Berlin Hauptbahnhof','d0'],
+    [52.4876,13.4211,'H','Hôtel Ludwig van Beethoven','d0'],
+    [52.5063,13.4436,'A','Uber Arena','d0'],
+    [52.4790,13.4362,'1','Klunkerkranich','d1'],
+    [52.5020,13.4318,'2','Markthalle Neun','d1'],
+    [52.5024,13.3953,'3','Musée juif de Berlin','d2'],
+    [52.5065,13.3833,'4','Topographie des Terrors','d2'],
+    [52.5139,13.3789,'5','Mémorial aux Juifs assassinés','d2'],
+    [52.5163,13.3777,'6','Porte de Brandebourg','d2'],
+    [52.5186,13.3761,'7','Reichstag','d2'],
+    [52.5352,13.3899,'8','Mémorial du Mur, Bernauer Straße','d3'],
+    [52.5219,13.4132,'9','Horloge universelle','d3'],
+    [52.5192,13.4010,'10','Berliner Dom','d3'],
+    [52.5050,13.4394,'11','East Side Gallery','d4'],
+    [52.5018,13.4457,'12','Pont Oberbaum et Wall Museum','d4']
+  ];
+  var map = null, built = false;
+
+  function build(){
+    if (built) return;
+    var host = document.getElementById('gmap');
+    if (typeof L === 'undefined'){
+      host.innerHTML = '<p style="padding:20px;font-size:14px;line-height:1.5">La carte n\'a pas pu se charger, faute de réseau. Basculez sur le schéma hors ligne.</p>';
+      built = true; return;
+    }
+    built = true;
+    map = L.map('gmap', {scrollWheelZoom:false});
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'&copy; OpenStreetMap'}).addTo(map);
+    var bounds = [];
+    PTS.forEach(function(p){
+      var icon = L.divIcon({
+        className:'leaf-pin',
+        html:'<span class="pin ' + p[4] + '">' + p[2] + '</span>',
+        iconSize:[28,28], iconAnchor:[14,14]
+      });
+      L.marker([p[0],p[1]], {icon:icon}).addTo(map)
+        .bindPopup('<b>' + p[3] + '</b><a href="https://www.google.com/maps/search/?api=1&query=' + p[0] + ',' + p[1] + '" target="_blank" rel="noopener">Ouvrir dans Google Maps</a>');
+      bounds.push([p[0],p[1]]);
+    });
+    map.fitBounds(bounds, {padding:[34,34]});
+  }
+  function refresh(){
+    if (document.getElementById('btn-real').getAttribute('aria-pressed') !== 'true') return;
+    build();
+    if (map) setTimeout(function(){ map.invalidateSize(); }, 80);
+  }
+  window.__berlinMapRefresh = refresh;
+
+  function show(real){
+    document.getElementById('gmap').classList.toggle('hidden', !real);
+    document.getElementById('svgmap').classList.toggle('hidden', real);
+    document.getElementById('btn-real').setAttribute('aria-pressed', real ? 'true' : 'false');
+    document.getElementById('btn-svg').setAttribute('aria-pressed', real ? 'false' : 'true');
+    if (real) refresh();
+  }
+  document.getElementById('btn-real').addEventListener('click', function(){ show(true); });
+  document.getElementById('btn-svg').addEventListener('click', function(){ show(false); });
+  window.addEventListener('load', refresh);
+})();
+</script>
+<script>
+/* Mise à jour automatique du carnet.
+
+   Le service worker sert la page depuis son cache — affichage immédiat, hors
+   ligne compris — puis vérifie le réseau en arrière-plan. Dès qu'un fichier a
+   changé, il prévient ici, et la page se recharge d'elle-même : rien à
+   rafraîchir à la main, aucune version à incrémenter avant de publier. */
+(function () {
+  var STATE = 'berlin.reload';
+  var reloading = false;
+
+  var toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+  document.body.appendChild(toast);
+  var hide;
+
+  function say(msg) {
+    toast.textContent = msg;
+    toast.classList.add('on');
+    clearTimeout(hide);
+    hide = setTimeout(function () { toast.classList.remove('on'); }, 2600);
+  }
+
+  /* Garde-fou : plus de cinq rechargements en trente secondes, ce n'est plus une
+     publication, c'est une boucle. On s'arrête là plutôt que de faire clignoter
+     le carnet indéfiniment. Le seuil laisse passer une rafale de modifications. */
+  function looping() {
+    var now = Date.now(), log = [];
+    try { log = JSON.parse(sessionStorage.getItem('berlin.reloads') || '[]'); } catch (err) {}
+    log = log.filter(function (t) { return now - t < 30000; });
+    log.push(now);
+    try { sessionStorage.setItem('berlin.reloads', JSON.stringify(log)); } catch (err) {}
+    return log.length > 5;
+  }
+
+  /* Onglet ouvert et position de lecture, repris de l'autre côté du rechargement. */
+  function apply() {
+    if (reloading) return;
+    if (looping()) { say('Mise à jour en boucle — rechargement suspendu'); return; }
+    reloading = true;
+    var open = document.querySelector('.tabs button[aria-selected="true"]');
+    try {
+      sessionStorage.setItem(STATE, JSON.stringify({
+        tab: open ? open.id : '',
+        y: window.scrollY || 0
+      }));
+    } catch (err) {}
+    location.reload();
+  }
+
+  function restore() {
+    var raw;
+    try { raw = sessionStorage.getItem(STATE); sessionStorage.removeItem(STATE); }
+    catch (err) { return; }
+    if (!raw) return;
+    var st;
+    try { st = JSON.parse(raw); } catch (err) { return; }
+    var btn = st.tab && document.getElementById(st.tab);
+    if (btn && btn.getAttribute('aria-selected') !== 'true') btn.click();
+    if (st.y) window.scrollTo(0, st.y);
+    say('Carnet mis à jour');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restore);
+  } else {
+    restore();
+  }
+
+  if (!('serviceWorker' in navigator)) return;
+
+  var sw = navigator.serviceWorker;
+  /* Vrai seulement si un service worker pilotait déjà la page : au tout premier
+     chargement, la prise de contrôle n'est pas une mise à jour. */
+  var wasControlled = !!sw.controller;
+
+  sw.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'berlin-updated') apply();
+  });
+
+  sw.addEventListener('controllerchange', function () {
+    if (wasControlled) apply();
+  });
+
+  function check() {
+    if (document.visibilityState !== 'visible') return;
+    if (navigator.onLine === false) return;
+    sw.getRegistration().then(function (reg) {
+      if (reg) reg.update().catch(function () {});
+    }).catch(function () {});
+    if (sw.controller) sw.controller.postMessage({ type: 'berlin-check' });
+  }
+
+  window.addEventListener('load', function () {
+    /* updateViaCache: 'none' — sw.js est toujours relu sur le réseau, jamais
+       servi par le cache HTTP du navigateur. */
+    sw.register('sw.js', { updateViaCache: 'none' }).then(function () {
+      setTimeout(check, 1200);
+    }).catch(function () {});
+  });
+
+  document.addEventListener('visibilitychange', check);
+  window.addEventListener('online', check);
+  setInterval(check, 30000);
+
+  /* Dépannage depuis la console : berlinCache.check() force une vérification,
+     berlinCache.clear() vide la coquille et la retélécharge, les tuiles de
+     carte déjà consultées étant conservées. */
+  window.berlinCache = {
+    check: check,
+    clear: function () {
+      if (sw.controller) sw.controller.postMessage({ type: 'berlin-clear' });
+      else location.reload();
+    }
+  };
+})();
+</script>
+</body>
+</html>

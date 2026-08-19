@@ -127,6 +127,25 @@ ul.plain li{margin:5px 0}
 .mapswitch button[aria-pressed="true"]{background:var(--pine);border-color:var(--pine);color:var(--wood)}
 .mapswitch button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .hidden{display:none !important}
+
+.locbtn{width:38px;height:38px;padding:0;cursor:pointer;background:var(--paper);
+  border:1px solid var(--line-strong);border-radius:8px;color:var(--ink);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(20,17,13,.2)}
+.locbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round}
+.locbtn[aria-pressed="true"]{background:var(--pine);border-color:var(--pine);color:var(--wood)}
+.locbtn[data-state="wait"]{opacity:.6}
+.locbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.me{display:block;width:16px;height:16px;border-radius:50%;background:#1E6FD9;
+  border:3px solid #FFF8EA;box-shadow:0 0 0 1px rgba(20,17,13,.4)}
+@media (prefers-reduced-motion:no-preference){
+  .me{animation:mepulse 2s ease-out infinite}
+  @keyframes mepulse{
+    0%{box-shadow:0 0 0 1px rgba(20,17,13,.4),0 0 0 0 rgba(30,111,217,.45)}
+    70%{box-shadow:0 0 0 1px rgba(20,17,13,.4),0 0 0 14px rgba(30,111,217,0)}
+    100%{box-shadow:0 0 0 1px rgba(20,17,13,.4),0 0 0 0 rgba(30,111,217,0)}
+  }
+}
 .map{width:100%;height:auto;display:block;background:var(--paper);border:1px solid var(--line);border-radius:10px}
 .daykey{display:flex;flex-wrap:wrap;gap:11px;margin:10px 0 0;font-size:12px;color:var(--ink-60)}
 .daykey span{display:flex;align-items:center;gap:5px}
@@ -585,6 +604,145 @@ a{color:var(--pine);text-underline-offset:2px}
   else { num.textContent = 'fin'; lab.textContent = 'séjour terminé'; }
 })();
 
+/* Position en direct, commune aux deux cartes.
+
+   La géolocalisation du navigateur ne passe pas par le réseau : le GPS du
+   téléphone suffit, donc cela fonctionne à Berlin sans forfait data dès lors
+   que les tuiles sont déjà en cache. Un contexte sécurisé est exigé, ce que
+   GitHub Pages fournit.
+
+   Une seule surveillance matérielle est ouverte, quel que soit le nombre de
+   cartes qui l'affichent : deux watchPosition simultanés videraient la
+   batterie deux fois plus vite pour la même information. */
+(function(){
+  var subs = [], watchId = null, last = null;
+
+  function active(){
+    var n = 0;
+    subs.forEach(function(s){ if (s.on) n++; });
+    return n;
+  }
+
+  function sync(){
+    if (active() === 0){
+      if (watchId !== null){ navigator.geolocation.clearWatch(watchId); watchId = null; }
+      return;
+    }
+    if (watchId !== null) return;
+    watchId = navigator.geolocation.watchPosition(function(pos){
+      last = pos;
+      subs.forEach(function(s){ if (s.on) s.fix(pos); });
+    }, function(err){
+      subs.forEach(function(s){ if (s.on) s.fail(err); });
+    }, {enableHighAccuracy:true, maximumAge:10000, timeout:20000});
+  }
+
+  /* Seul le refus d'autorisation est définitif. Perdre le signal — un tunnel,
+     l'intérieur de l'arena, une rue étroite — est passager et courant : on garde
+     la surveillance ouverte et le dernier point affiché, plutôt que de tout
+     éteindre et d'obliger à réappuyer. */
+  function fatal(err){ return !!err && err.code === 1; }
+
+  /* Ajoute le bouton « ma position » à une carte Leaflet. */
+  window.__berlinLocate = function(map){
+    if (!navigator.geolocation) return;
+
+    var dot = null, halo = null, follow = true, btn = null, warned = false, selfMove = 0;
+    var sub = { on:false, fix:onFix, fail:onFail };
+    subs.push(sub);
+
+    function paint(state){
+      if (!btn) return;
+      btn.setAttribute('aria-pressed', sub.on ? 'true' : 'false');
+      btn.setAttribute('data-state', state || '');
+    }
+
+    function onFix(pos){
+      var ll = [pos.coords.latitude, pos.coords.longitude];
+      if (!dot){
+        halo = L.circle(ll, {radius:pos.coords.accuracy, color:'#1E6FD9', weight:1,
+                             fillColor:'#1E6FD9', fillOpacity:.12}).addTo(map);
+        dot = L.marker(ll, {icon:L.divIcon({className:'leaf-pin', html:'<span class="me"></span>',
+                             iconSize:[16,16], iconAnchor:[8,8]}), zIndexOffset:1000}).addTo(map);
+      } else {
+        dot.setLatLng(ll);
+        halo.setLatLng(ll).setRadius(pos.coords.accuracy);
+      }
+      /* On recadre tant que la carte n'a pas été déplacée à la main. */
+      if (follow){
+        selfMove = Date.now();
+        map.setView(ll, Math.max(map.getZoom(), 15));
+      }
+      warned = false;
+      paint('');
+    }
+
+    function onFail(err){
+      if (fatal(err)){
+        sub.on = false;
+        clear();
+        sync();
+        paint('');
+        say('Position refusée — autorisez la localisation dans le navigateur');
+        return;
+      }
+      /* Signal perdu : le point reste où il était, la surveillance continue,
+         et on ne le signale qu'une fois par interruption. */
+      paint('wait');
+      if (!warned){
+        warned = true;
+        say(dot ? 'Signal GPS perdu — dernière position conservée' : 'Recherche du signal GPS…');
+      }
+    }
+
+    function say(msg){
+      if (window.__berlinSay) window.__berlinSay(msg);
+    }
+
+    function clear(){
+      if (dot){ map.removeLayer(dot); dot = null; }
+      if (halo){ map.removeLayer(halo); halo = null; }
+    }
+
+    function toggle(){
+      sub.on = !sub.on;
+      if (sub.on){
+        follow = true;
+        paint('wait');
+        sync();
+        if (last) onFix(last);
+      } else {
+        clear();
+        warned = false;
+        sync();
+        paint('');
+      }
+    }
+
+    /* Un geste sur la carte rend la main à l'utilisateur et arrête le
+       recadrage. Le recadrage automatique déclenche lui aussi ces événements :
+       la fenêtre de 300 ms permet de ne pas se couper soi-même. */
+    map.on('dragstart zoomstart', function(){
+      if (Date.now() - selfMove > 300) follow = false;
+    });
+
+    var ctl = L.control({position:'topright'});
+    ctl.onAdd = function(){
+      btn = L.DomUtil.create('button', 'locbtn');
+      btn.type = 'button';
+      btn.title = 'Ma position';
+      btn.setAttribute('aria-label', 'Afficher ma position');
+      btn.setAttribute('aria-pressed', 'false');
+      btn.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/>' +
+                      '<path d="M12 2.5v3.2M12 18.3v3.2M2.5 12h3.2M18.3 12h3.2"/></svg>';
+      L.DomEvent.disableClickPropagation(btn);
+      L.DomEvent.on(btn, 'click', function(e){ L.DomEvent.stop(e); toggle(); });
+      return btn;
+    };
+    ctl.addTo(map);
+  };
+})();
+
 (function(){
   var PTS = [
     [52.5251,13.3694,'G','Berlin Hauptbahnhof','d0'],
@@ -627,6 +785,7 @@ a{color:var(--pine);text-underline-offset:2px}
       bounds.push([p[0],p[1]]);
     });
     map.fitBounds(bounds, {padding:[34,34]});
+    if (window.__berlinLocate) window.__berlinLocate(map);
   }
   function refresh(){
     if (document.getElementById('btn-real').getAttribute('aria-pressed') !== 'true') return;
@@ -740,6 +899,7 @@ a{color:var(--pine);text-underline-offset:2px}
     VIEWS.arena = zoneBounds(pts, 'arena').concat([[ANCHORS[1][0], ANCHORS[1][1]]]);
 
     frame('tout');
+    if (window.__berlinLocate) window.__berlinLocate(map);
   }
 
   function zoneBounds(pts, zone){
@@ -794,6 +954,10 @@ a{color:var(--pine);text-underline-offset:2px}
     clearTimeout(hide);
     hide = setTimeout(function () { toast.classList.remove('on'); }, 2600);
   }
+
+  /* Un seul bandeau pour toute l'application : les cartes s'en servent aussi
+     pour signaler un refus de localisation. */
+  window.__berlinSay = say;
 
   /* Garde-fou : plus de cinq rechargements en trente secondes, ce n'est plus une
      publication, c'est une boucle. On s'arrête là plutôt que de faire clignoter

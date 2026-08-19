@@ -39,6 +39,27 @@ réseau à Berlin. Elles ne sont jamais effacées par une mise à jour.
 Le schéma hors ligne, lui, est dessiné dans la page et s'affiche en toutes
 circonstances.
 
+## Position en direct
+
+Les deux cartes portent un bouton de localisation, en haut à droite. Il affiche
+un point bleu avec son cercle de précision, et recadre la carte tant que vous ne
+l'avez pas déplacée à la main — un glissement ou un pincement rend la main, et
+le bouton la reprend au clic suivant.
+
+**Cela fonctionne sans réseau.** La géolocalisation du navigateur s'appuie sur le
+GPS de l'appareil, pas sur une requête distante : une fois les tuiles en cache,
+vous vous repérez à Berlin sans forfait data. Un contexte sécurisé est requis,
+ce que GitHub Pages fournit.
+
+Perdre le signal — un tunnel, l'intérieur de l'arena, une rue étroite — ne coupe
+pas le suivi : le dernier point reste affiché, un message discret le signale une
+fois, et la position repart d'elle-même au retour du signal. Seul un refus
+d'autorisation éteint le bouton.
+
+Une seule surveillance matérielle est ouverte, même si les deux cartes affichent
+la position. Le suivi reste néanmoins coûteux en batterie : éteignez-le quand
+vous ne l'utilisez pas.
+
 ## Mise à jour
 
 Modifier `index.html`, pousser sur `main`, c'est tout : **rien à incrémenter,

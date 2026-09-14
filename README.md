@@ -69,6 +69,33 @@ sans qu'on ait à tout décaler, et l'œil ne confond pas deux zones voisines.
 | 12 | Rosés | 8 |
 | 15 | Grands formats et apéritifs | 7 |
 
+## Le prix, et ce qu'il ne dit pas
+
+Chaque bouteille porte une estimation de son **prix d'achat**, et l'en-tête en
+fait le total. Ce n'est pas une cote de marché.
+
+L'âge ne fait pas monter le prix d'un vin. Il ne le fait monter que pour une
+minorité de crus recherchés, échangés sur un vrai marché — et aucune des
+trente-trois références de cette cave n'est dans ce cas. Ce sont des vins à
+boire, pas des vins à revendre : une bouteille de 2015 gardée dix ans de plus
+ne vaudra pas davantage, elle sera simplement passée.
+
+Les estimations viennent des tarifs courants en Belgique pour ces cuvées,
+arrondis. Elles servent à savoir ce que représente la cave — assurance,
+partage, succession — pas à spéculer. Chaque prix se corrige dans le
+formulaire.
+
+## Le bouton retour d'Android
+
+Une application installée démarre sans historique : le premier geste de retour
+la referme, ce qui surprend et agace. Chaque navigation interne empile donc une
+entrée. Le retour ramène à l'onglet précédent, referme la visionneuse quand
+elle est ouverte, et ne quitte l'application que depuis l'onglet Cave, là où
+c'est attendu.
+
+Refermer la visionneuse au doigt consomme son entrée d'historique, sans quoi le
+geste de retour suivant n'aurait rien fait du tout.
+
 ## Le relevé et vos données
 
 Le relevé livré avec l'application porte un numéro de version. Une cave

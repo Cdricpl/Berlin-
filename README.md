@@ -46,9 +46,26 @@ supportent le mieux quelques degrés de plus, occupent le haut du casier ; les
 blancs et les bulles le milieu ; les rosés le bas, au plus frais. L'étagère du
 sol reçoit les grands formats et les vins d'apéritif.
 
+Le casier compte **deux sections côte à côte, quinze rangées, cinq bouteilles
+par rangée** : cent cinquante emplacements. Un emplacement s'écrit `G6C` —
+section gauche ou droite, numéro de rangée, place dans la rangée.
+
 Une référence de plusieurs bouteilles occupe autant de cases consécutives à
-partir de son emplacement : `3B` avec deux bouteilles prend `3B` et `3C`. La
-rangée 5 est laissée libre pour les arrivées.
+partir de son emplacement : `G2A` avec deux bouteilles prend `G2A` et `G2B`,
+sans jamais déborder sur la rangée suivante.
+
+Les familles sont posées sur une rangée chacune, séparées par des rangées
+vides. Ce n'est pas de la place perdue : chaque famille peut grandir sur place
+sans qu'on ait à tout décaler, et l'œil ne confond pas deux zones voisines.
+
+| Rangée | Contenu | Bouteilles |
+|---|---|---|
+| 1 | Rouges de garde | 8 |
+| 2 | Rouges à boire | 8 |
+| 6 | Blancs | 8 |
+| 9 | Bulles | 4 |
+| 12 | Rosés | 8 |
+| 15 | Grands formats et apéritifs | 7 |
 
 ## Où sont les données
 

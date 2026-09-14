@@ -1,94 +1,67 @@
-# Berlin 2026 — carnet de voyage
+# Cave à vin
 
-Application web hors ligne pour le séjour à Berlin du 10 au 14 septembre 2026,
-à l'occasion de la Coupe du monde féminine de basket-ball.
+Inventaire de cave, utilisable hors ligne, installable sur le téléphone.
 
-## Contenu
+## Ce que ça fait
 
-- **Programme** — les cinq journées heure par heure, du départ de Stavelot au retour,
-  avec la carte des lieux et un schéma de secours qui fonctionne sans réseau.
-- **Trajets** — FlixTrain aller-retour, sièges, et le parking de Cologne.
-- **Berlin** — hôtel, itinéraires en transports, titres de transport, budget.
-- **Matchs** — Uber Arena, emplacement des places, horaires des quatre rencontres.
-- **Manger** — les adresses retenues, classées par moment du séjour, avec leur
-  carte : numérotées comme les listes, colorées par moment, et deux gros plans
-  sur les grappes du quartier de l'hôtel et de l'arena.
+- **Cave** — la liste des références, avec recherche insensible aux accents et
+  filtres par couleur. Chaque ligne porte sa couleur, son emplacement et l'état
+  de son apogée.
+- **Le geste courant est le plus rapide** : boire une bouteille, c'est un appui
+  sur le `−` de sa ligne. Pas de formulaire à rouvrir.
+- **Apogée** — en renseignant une fenêtre de dégustation, chaque bouteille est
+  signalée « à garder », « à boire » ou « apogée dépassée », et le compteur
+  d'en-tête dit combien de bouteilles sont à leur apogée.
+- **Ajouter** — cuvée, producteur, millésime, couleur, appellation, quantité,
+  emplacement, fenêtre d'apogée, notes.
+- **Réglages** — export et import JSON, remise à zéro.
 
-## Mise en ligne
+## Où sont les données
 
-1. Déposer tous les fichiers à la racine de la branche `main`.
-2. Dans le dépôt : **Settings → Pages**.
-3. *Source* : **Deploy from a branch**, branche `main`, dossier `/ (root)`.
-4. Après une minute, le carnet est disponible à l'adresse indiquée par GitHub,
-   de la forme `https://<compte>.github.io/Berlin/`.
+Dans le stockage local du navigateur, sur cet appareil, et **nulle part
+ailleurs**. C'est ce qui permet de fonctionner sans réseau et sans compte, mais
+cela veut dire trois choses :
 
-## Installation sur le téléphone
+1. La cave n'est pas synchronisée entre le téléphone et l'ordinateur.
+2. Effacer les données du site efface la cave.
+3. **L'export JSON est la seule sauvegarde.** Faites-le de temps en temps.
 
-Ouvrir l'adresse dans Chrome, puis menu **⋮ → Ajouter à l'écran d'accueil**.
-Le carnet s'installe comme une application, avec sa propre icône et sans barre
-d'adresse.
-
-## Fonctionnement hors ligne
-
-Un service worker met en cache l'application au premier chargement. Les tuiles
-de carte sont conservées au fur et à mesure de la consultation : **parcourir les
-deux cartes une fois avant le départ** — celle du programme et celle des
-restaurants, vues d'ensemble et gros plans — suffit à les rendre lisibles sans
-réseau à Berlin. Elles ne sont jamais effacées par une mise à jour.
-
-Le schéma hors ligne, lui, est dessiné dans la page et s'affiche en toutes
-circonstances.
-
-## Position en direct
-
-Les deux cartes portent un bouton de localisation, en haut à droite. Il affiche
-un point bleu avec son cercle de précision, et recadre la carte tant que vous ne
-l'avez pas déplacée à la main — un glissement ou un pincement rend la main, et
-le bouton la reprend au clic suivant.
-
-**Cela fonctionne sans réseau.** La géolocalisation du navigateur s'appuie sur le
-GPS de l'appareil, pas sur une requête distante : une fois les tuiles en cache,
-vous vous repérez à Berlin sans forfait data. Un contexte sécurisé est requis,
-ce que GitHub Pages fournit.
-
-Perdre le signal — un tunnel, l'intérieur de l'arena, une rue étroite — ne coupe
-pas le suivi : le dernier point reste affiché, un message discret le signale une
-fois, et la position repart d'elle-même au retour du signal. Seul un refus
-d'autorisation éteint le bouton.
-
-Une seule surveillance matérielle est ouverte, même si les deux cartes affichent
-la position. Le suivi reste néanmoins coûteux en batterie : éteignez-le quand
-vous ne l'utilisez pas.
+L'import ajoute les bouteilles du fichier à la cave en place, sans écraser.
 
 ## Mise à jour
 
-Modifier `index.html`, pousser sur `main`, c'est tout : **rien à incrémenter,
-rien à rafraîchir à la main**.
+Modifier `index.html`, pousser sur `main`, c'est tout : rien à incrémenter,
+rien à rafraîchir à la main.
 
 Le cache répond en premier — la page s'ouvre instantanément, hors ligne
 comprise — et le service worker vérifie le réseau derrière. Dès qu'un fichier a
 changé, il remplace sa copie et la page se recharge d'elle-même, en gardant
-l'onglet ouvert et la position de lecture. Un bref « Carnet mis à jour »
-s'affiche en bas.
+l'onglet ouvert et la position de lecture.
 
 La vérification a lieu à l'ouverture, au retour au premier plan, au retour du
-réseau, et toutes les trente secondes tant que le carnet est visible. Elle
-utilise des requêtes conditionnelles : tant que rien ne bouge, le serveur
-répond `304` et rien n'est téléchargé.
-
-Deux détails qui font que le cache ne peut pas rester coincé :
-
-- `sw.js` est enregistré avec `updateViaCache: 'none'`, donc toujours relu sur
-  le réseau ;
-- les vérifications utilisent `cache: 'no-cache'`, ce qui court-circuite le
-  `max-age=600` que GitHub Pages applique aux fichiers.
+réseau, et toutes les trente secondes tant que la page est visible. Elle utilise
+des requêtes conditionnelles : tant que rien ne bouge, le serveur répond `304`
+et rien n'est téléchargé.
 
 En cas de doute, depuis la console du navigateur :
 
 ```js
-berlinCache.check();  // forcer une vérification immédiate
-berlinCache.clear();  // vider la coquille et la retélécharger (tuiles conservées)
+caveCache.check();  // forcer une vérification immédiate
+caveCache.clear();  // vider le cache de l'application et le retélécharger
 ```
+
+Vider le cache de l'application ne touche pas aux bouteilles : elles sont dans
+le stockage local, pas dans le cache.
+
+## Mise en ligne
+
+Les fichiers vont à la racine de `main`, puis **Settings → Pages → Deploy from a
+branch → `main` → `/ (root)`**. Les chemins sont relatifs, l'application
+fonctionne donc sous un sous-dossier.
+
+## Installation sur le téléphone
+
+Ouvrir l'adresse dans Chrome, puis **⋮ → Ajouter à l'écran d'accueil**.
 
 ## Fichiers
 
@@ -99,3 +72,8 @@ berlinCache.clear();  // vider la coquille et la retélécharger (tuiles conserv
 | `sw.js` | Cache hors ligne et mise à jour automatique |
 | `icon-*.png` | Icônes 192 et 512 px, plus une version maskable pour Android |
 | `.nojekyll` | Désactive Jekyll sur GitHub Pages : les fichiers sont servis tels quels |
+
+## Avant
+
+Ce dépôt a d'abord porté un carnet de voyage pour Berlin, en septembre 2026. Il
+est conservé intact sur la branche `archive/berlin-2026`.

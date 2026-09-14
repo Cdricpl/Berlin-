@@ -239,6 +239,91 @@ a{color:var(--wine);text-underline-offset:2px}
 
   var cave = [], filtre = 'tout', recherche = '';
 
+  /* Relevé sur les photos du casier. Les quantités sont ce que montrent les
+     clichés : à corriger bouteille en main. Le casier en contient visiblement
+     davantage que ce que les gros plans permettent de lire. */
+  var DEPART = [
+    {nom:'Rivaner, spécial pour Maitrank', producteur:'Caves St. Martin', couleur:'blanc',
+     region:'Moselle luxembourgeoise, Remich', quantite:4, emplacement:'Étagère du bas',
+     notes:'Bouteilles de 100 cl, 11,5 %, lot L-01/23. Le vin de base du Maitrank.'},
+    {nom:'Rivaner, spécial pour Maitrank', producteur:'Domaines Vinsmoselle', couleur:'blanc',
+     region:'Moselle luxembourgeoise', quantite:1, emplacement:'Étagère du bas',
+     notes:'Capsule dorée, cuvée « à votre santé ».'},
+    {nom:'Vintense Chardonnay', producteur:'Vintense', couleur:'blanc', quantite:1,
+     emplacement:'Étagère du bas', notes:'Sans alcool, 0,0 %.'},
+    {nom:'Vintense', producteur:'Vintense', couleur:'blanc', quantite:1,
+     emplacement:'Étagère du bas', notes:'Sans alcool, 0,0 %. Cuvée illisible sur la photo — à compléter.'},
+    {nom:'Katz Brut', producteur:'Jean-Paul Meyer', couleur:'bulles', region:'Alsace', quantite:1},
+    {nom:'Prosecco Millesimato Brut', producteur:'X2 For Due', couleur:'bulles',
+     region:'Prosecco DOC', quantite:1},
+    {nom:'Cava Brut Organic Vintage', producteur:'Codorníu', couleur:'bulles',
+     region:'Cava, Sant Sadurní d\'Anoia', quantite:1, notes:'Méthode traditionnelle, bio.'},
+    {nom:'Kef Red', producteur:'Karas', millesime:2024, couleur:'rouge',
+     region:'Vallée de l\'Ararat, Arménie', quantite:2, notes:'Areni et malbec.'},
+    {nom:'Les Grappes d\'Antan', millesime:2024, couleur:'rouge',
+     region:'Côtes du Rhône', quantite:2, notes:'Bio, mis en bouteille à la propriété.'},
+    {nom:'Château Reygade', producteur:'Hubert Reygade', millesime:2022, couleur:'rouge',
+     region:'Fronsac, Bordeaux', quantite:1, notes:'15 %. Récolte 2022.'},
+    {nom:'Monte do Zambujeiro', producteur:'Quinta do Zambujeiro', millesime:2022,
+     couleur:'rouge', region:'Portugal', quantite:1},
+    {nom:'Masso Antico Primitivo Single Vineyard', couleur:'rouge', region:'Salento, Pouilles',
+     quantite:1, notes:'Bio. 98/100 Luca Maroni, bronze à l\'International Wine Challenge.'},
+    {nom:'Canonico Negroamaro', producteur:'Cantine Due Palme', couleur:'rouge',
+     region:'Salento IGP', quantite:1},
+    {nom:'Noir 46 Malbec', couleur:'rouge', region:'France', quantite:2},
+    {nom:'Flore & Marius Merlot', couleur:'rouge', quantite:1},
+    {nom:'Simplement !', producteur:'Domaine de L\'Horte', couleur:'rouge',
+     region:'Magalas, Languedoc', quantite:1, notes:'André Alingrin, paysan vigneron. 12 %.'},
+    {nom:'Vieux Château Renaissance', producteur:'Vignobles Turtaud', millesime:2015,
+     couleur:'rouge', region:'Bordeaux', quantite:1,
+     notes:'Merlot-cabernet. Mention manuscrite sur l\'étiquette — bouteille qui vient de quelqu\'un.'},
+    {nom:'Château Haut-Bélian', producteur:'GFA La Garrousse', millesime:2020, couleur:'rouge',
+     region:'Bordeaux', quantite:1, notes:'Médaille d\'argent au Concours de Lyon 2021.'},
+    {nom:'Casillero del Diablo Reserva Privada', producteur:'Concha y Toro', millesime:2019,
+     couleur:'rouge', region:'Valle del Maipo, Chili', quantite:1, notes:'Cabernet sauvignon.'},
+    {nom:'L\'Instant Tannay', producteur:'Romain Desbrosses, Domaine de Bel Air', millesime:2022,
+     couleur:'rouge', region:'Coteaux de Tannay IGP', quantite:1, notes:'Pinot noir, 13 %.'},
+
+    {nom:'Granbeau Rosé, Grande Cuvée', couleur:'rose', quantite:2},
+    {nom:'Amicale', producteur:'Cantine di Ora', couleur:'rose', region:'Italie', quantite:1},
+    {nom:'La Villa Angeli', couleur:'rose', region:'Corse', quantite:2,
+     notes:'Robe très pâle sur la photo : blanc ou rosé, à confirmer bouteille en main.'},
+    {nom:'Castel del Monte Rosato', producteur:'Grifo', couleur:'rose',
+     region:'Castel del Monte DOP, Pouilles', quantite:1},
+    {nom:'Rosé Piscine', producteur:'Vinovalie', couleur:'rose', quantite:1,
+     notes:'Celui qui se boit sur glaçons.'},
+    {nom:'Terres d\'Orb', producteur:'Cave de Roquebrun', millesime:2017, couleur:'rose',
+     region:'Pays d\'Oc IGP', quantite:1, apogee1:2017, apogee2:2019,
+     notes:'Un rosé de 2017 : fenêtre posée courte à dessein, il est très probablement passé. À goûter avant d\'y compter.'},
+
+    {nom:'¡Hola! Mediterráneo Brut Rosé', couleur:'bulles', region:'Espagne', quantite:1,
+     notes:'Coupage naturel traditionnel.'},
+
+    {nom:'Pinot blanc', producteur:'J. Hubster', millesime:2021, couleur:'blanc',
+     region:'Alsace', quantite:1},
+    {nom:'Roussette de Savoie', producteur:'Maison Philippe Viallet', millesime:2019,
+     couleur:'blanc', region:'Savoie, Apremont', quantite:2, notes:'12,5 %.'},
+    {nom:'Chapelle de Savoie', producteur:'Maison Philippe Viallet', millesime:2019,
+     couleur:'blanc', region:'Savoie', quantite:1,
+     notes:'Vue à l\'arrière-plan d\'une photo, étiquette partiellement lisible — à vérifier.'},
+    {nom:'Amandier Chardonnay', producteur:'Vignerons Ardéchois', couleur:'blanc',
+     region:'Ardèche', quantite:1, notes:'Sélections parcellaires.'},
+    {nom:'Colombard Chardonnay, Cuvée Réservée', producteur:'Vieux Papes', couleur:'blanc',
+     region:'Vin de France', quantite:1, notes:'11,5 %.'},
+    {nom:'Solar 6 Chardonnay', producteur:'Gérard Bertrand', millesime:2025, couleur:'blanc',
+     region:'Cévennes IGP', quantite:2, notes:'Vin biologique.'}
+  ];
+
+  function charger(){
+    DEPART.forEach(function(m){
+      var b = {id: id()};
+      champs.forEach(function(c){ b[c] = m[c] == null ? '' : m[c]; });
+      b.quantite = m.quantite == null ? 1 : m.quantite;
+      cave.push(b);
+    });
+    if (ecrire()) { dire(DEPART.length + ' références chargées'); rendre(); }
+  }
+
   function lire(){
     try {
       var brut = localStorage.getItem(CLE);
@@ -376,7 +461,20 @@ a{color:var(--wine);text-underline-offset:2px}
     var plein = cave.length > 0;
     d.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 3h10l-1 7a4 4 0 01-8 0z"/><path d="M12 14v6M8 21h8"/></svg>' +
       '<b>' + (plein ? 'Rien ne correspond' : 'La cave est vide') + '</b>' +
-      (plein ? 'Changez de filtre ou effacez la recherche.' : 'Ajoutez votre première bouteille depuis l\'onglet Ajouter.');
+      (plein ? 'Changez de filtre ou effacez la recherche.'
+             : 'Ajoutez vos bouteilles depuis l\'onglet Ajouter, ou partez de celles relevées sur vos photos.');
+    if (!plein) {
+      var row = document.createElement('div');
+      row.className = 'btnrow';
+      row.style.justifyContent = 'center';
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn';
+      b.textContent = 'Charger les ' + DEPART.length + ' références photographiées';
+      b.addEventListener('click', charger);
+      row.appendChild(b);
+      d.appendChild(row);
+    }
     return d;
   }
 

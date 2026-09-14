@@ -17,8 +17,10 @@ Inventaire de cave, utilisable hors ligne, installable sur le téléphone.
 - **Accords** — apéritif, poisson, viande blanche, viande rouge, fromage,
   dessert. Filtrables depuis l'onglet Cave : « qu'est-ce que j'ouvre avec le
   poisson de ce soir ».
-- **Plan** — le casier dessiné rangée par rangée, chaque case colorée par type.
-  Un appui sur une case retrouve la bouteille dans la liste.
+- **Plan** — le casier dessiné rangée par rangée, chaque emplacement figuré par
+  un rond, comme le cul de bouteille qu'on voit en se plantant devant le casier.
+  Rond plein coloré par type, rond vide pour une place libre. Un appui retrouve
+  la bouteille dans la liste.
 - **Photo de l'étiquette** — une vignette par ligne, dépliable en plein écran.
   Le bouton *Photographier* ouvre l'appareil photo du téléphone ; l'image est
   réduite à 480 px et compressée avant d'être enregistrée, faute de quoi trois

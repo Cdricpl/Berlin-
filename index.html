@@ -314,6 +314,14 @@ a{color:var(--wine);text-underline-offset:2px}
     <p class="tip" id="stockage"></p>
   </div>
 
+  <h2>Compléter</h2>
+  <div class="card">
+    <div class="btnrow">
+      <button type="button" class="btn ghost" id="completer">Réappliquer le relevé de référence</button>
+    </div>
+    <p class="tip">Remplit les champs vides — accords, apogée, emplacement, photo — à partir du relevé livré avec l'application. Ne touche jamais à ce que vous avez saisi vous-même.</p>
+  </div>
+
   <h2>Remise à zéro</h2>
   <div class="card">
     <div class="btnrow">
@@ -349,6 +357,11 @@ a{color:var(--wine);text-underline-offset:2px}
    JSON des réglages est la seule sauvegarde. */
 (function(){
   var CLE = 'cave.v1';
+  /* Version du relevé de référence. Toute cave enregistrée sous une version
+     antérieure est complétée au démarrage : sans cela, les enrichissements du
+     relevé — accords, apogées, emplacements, photos — n'atteindraient jamais
+     une cave déjà remplie, et les filtres comme le plan resteraient vides. */
+  var VERSION = 3;
   var ANNEE = new Date().getFullYear();
   var COULEURS = {rouge:'Rouge', blanc:'Blanc', rose:'Rosé', bulles:'Bulles'};
   var ACCORDS = {aperitif:'Apéritif', poisson:'Poisson', 'viande-blanche':'Viande blanche',
@@ -441,6 +454,42 @@ a{color:var(--wine);text-underline-offset:2px}
     'Solar 6 Chardonnay':'solar-6-chardonnay'
   };
 
+  function cle(nom, prod){
+    return normalise(nom) + '|' + normalise(prod || '');
+  }
+
+  function estUnCode(v){
+    return /^[GD]\d{1,2}[A-E]$/.test((v || '').trim().toUpperCase());
+  }
+
+  /* Complète une cave existante avec le relevé de référence, sans jamais
+     écraser ce qui a été saisi : seuls les champs vides sont remplis. Un
+     emplacement qui n'est pas un code valide est traité comme vide, faute de
+     quoi les « Étagère du bas » des premières versions resteraient hors plan. */
+  function completer(){
+    var ref = {};
+    DEPART.forEach(function(m){ ref[cle(m.nom, m.producteur)] = m; });
+
+    var touchees = 0, champsRemplis = 0;
+    cave.forEach(function(b){
+      var m = ref[cle(b.nom, b.producteur)];
+      if (!m) return;
+      var avant = champsRemplis;
+
+      ['region','millesime','apogee1','apogee2','accord','notes'].forEach(function(c){
+        if (!b[c] && m[c]) { b[c] = m[c]; champsRemplis++; }
+      });
+      if (!estUnCode(b.emplacement) && m.emplacement) {
+        b.emplacement = m.emplacement; champsRemplis++;
+      }
+      if (!b.photo && ETIQUETTES[m.nom]) {
+        b.photo = 'etiquettes/' + ETIQUETTES[m.nom] + '.jpg'; champsRemplis++;
+      }
+      if (champsRemplis > avant) touchees++;
+    });
+    return { bouteilles: touchees, champs: champsRemplis };
+  }
+
   function charger(){
     DEPART.forEach(function(m){
       var b = {id: id()};
@@ -455,16 +504,22 @@ a{color:var(--wine);text-underline-offset:2px}
     if (ecrire()) { dire(DEPART.length + ' références chargées'); rendre(); }
   }
 
+  var versionLue = 0;
+
   function lire(){
     try {
       var brut = localStorage.getItem(CLE);
-      return brut ? JSON.parse(brut) : [];
-    } catch (e) { return []; }
+      if (!brut) { versionLue = VERSION; return []; }
+      var d = JSON.parse(brut);
+      if (Array.isArray(d)) { versionLue = 1; return d; }   /* ancien format : un simple tableau */
+      versionLue = d.v || 1;
+      return Array.isArray(d.bouteilles) ? d.bouteilles : [];
+    } catch (e) { versionLue = VERSION; return []; }
   }
 
   function ecrire(){
     try {
-      localStorage.setItem(CLE, JSON.stringify(cave));
+      localStorage.setItem(CLE, JSON.stringify({ v: VERSION, bouteilles: cave }));
       return true;
     } catch (e) {
       dire('Enregistrement impossible — stockage plein ou navigation privée');
@@ -716,20 +771,24 @@ a{color:var(--wine);text-underline-offset:2px}
   /* Le plan. Une référence de n bouteilles occupe n cases consécutives à partir
      de son emplacement : « 3B » avec deux bouteilles prend 3B et 3C. */
   function occupation(){
-    var occ = {};
+    var occ = {}, sans = [], conflits = [];
     cave.forEach(function(b){
       var m = /^([GD])(\d{1,2})([A-E])$/.exec((b.emplacement || '').trim().toUpperCase());
-      if (!m) return;
+      if (!m) { sans.push(b); return; }
       var rang = parseInt(m[2], 10);
-      if (rang < 1 || rang > RANGS) return;
+      if (rang < 1 || rang > RANGS) { sans.push(b); return; }
       var dep = m[3].charCodeAt(0) - 65;
       var n = Math.max(1, parseInt(b.quantite, 10) || 1);
       /* Une référence de plusieurs bouteilles occupe autant de cases
          consécutives, sans déborder sur la rangée suivante. */
       for (var i = 0; i < n && dep + i < PARRANG; i++) {
-        occ[m[1] + rang + '-' + (dep + i)] = b;
+        var k = m[1] + rang + '-' + (dep + i);
+        if (occ[k] && occ[k] !== b) conflits.push(occ[k].nom + ' et ' + b.nom);
+        occ[k] = b;
       }
     });
+    occ.__sans = sans;
+    occ.__conflits = conflits;
     return occ;
   }
 
@@ -809,6 +868,31 @@ a{color:var(--wine);text-underline-offset:2px}
       });
       bloc.appendChild(dedans);
       hote.appendChild(bloc);
+    }
+
+    /* Sans cela, une bouteille mal placée disparaîtrait du plan sans un mot. */
+    var alertes = [];
+    if (occ.__sans.length) {
+      alertes.push(occ.__sans.length + (occ.__sans.length > 1 ? ' bouteilles sont' : ' bouteille est')
+        + ' sans emplacement valide et n\'apparaît pas ci-dessus : '
+        + occ.__sans.map(function(b){ return b.nom; }).join(', ')
+        + '. Un emplacement s\'écrit G6C.');
+    }
+    if (occ.__conflits.length) {
+      alertes.push('Deux bouteilles se disputent la même place : ' + occ.__conflits.join(' ; ') + '.');
+    }
+    if (alertes.length) {
+      var carte = document.createElement('div');
+      carte.className = 'card';
+      carte.style.marginTop = '14px';
+      alertes.forEach(function(t){
+        var pp = document.createElement('p');
+        pp.className = 'tip warn';
+        pp.style.margin = '0 0 8px';
+        pp.textContent = t;
+        carte.appendChild(pp);
+      });
+      hote.appendChild(carte);
     }
   }
 
@@ -1032,7 +1116,7 @@ a{color:var(--wine);text-underline-offset:2px}
 
   /* ---------- sauvegarde ---------- */
   document.getElementById('export').addEventListener('click', function(){
-    var contenu = JSON.stringify({format:'cave.v1', exporte: new Date().toISOString(), bouteilles: cave}, null, 2);
+    var contenu = JSON.stringify({format:'cave', v: VERSION, exporte: new Date().toISOString(), bouteilles: cave}, null, 2);
     var url = URL.createObjectURL(new Blob([contenu], {type:'application/json'}));
     var a = document.createElement('a');
     a.href = url;
@@ -1063,6 +1147,13 @@ a{color:var(--wine);text-underline-offset:2px}
     };
     lecteur.readAsText(f);
     this.value = '';
+  });
+
+  document.getElementById('completer').addEventListener('click', function(){
+    if (!cave.length) { dire('La cave est vide'); return; }
+    var bilan = completer();
+    if (!bilan.champs) { dire('Rien à compléter, tout est déjà renseigné'); return; }
+    if (ecrire()) { dire(bilan.bouteilles + ' bouteilles complétées, ' + bilan.champs + ' champs remplis'); rendre(); }
   });
 
   document.getElementById('vider').addEventListener('click', function(){
@@ -1108,6 +1199,16 @@ a{color:var(--wine);text-underline-offset:2px}
 
   /* ---------- démarrage ---------- */
   cave = lire();
+
+  if (cave.length && versionLue < VERSION) {
+    var bilan = completer();
+    if (bilan.champs && ecrire()) {
+      setTimeout(function(){
+        dire(bilan.bouteilles + ' bouteilles complétées par le relevé');
+      }, 700);
+    }
+  }
+
   remplir(null);
   rendre();
 

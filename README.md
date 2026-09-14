@@ -9,9 +9,16 @@ Inventaire de cave, utilisable hors ligne, installable sur le téléphone.
   de son apogée.
 - **Le geste courant est le plus rapide** : boire une bouteille, c'est un appui
   sur le `−` de sa ligne. Pas de formulaire à rouvrir.
-- **Apogée** — en renseignant une fenêtre de dégustation, chaque bouteille est
-  signalée « à garder », « à boire » ou « apogée dépassée », et le compteur
-  d'en-tête dit combien de bouteilles sont à leur apogée.
+- **Apogée** — chaque bouteille porte sa fenêtre de dégustation, tracée sur une
+  frise à **échelle commune (2016-2034)** : le repère doré de l'année en cours
+  tombe au même endroit sur toutes les lignes, si bien que deux bouteilles se
+  comparent d'un coup d'œil. Trois états : « à garder », « à boire »,
+  « apogée dépassée ».
+- **Accords** — apéritif, poisson, viande blanche, viande rouge, fromage,
+  dessert. Filtrables depuis l'onglet Cave : « qu'est-ce que j'ouvre avec le
+  poisson de ce soir ».
+- **Plan** — le casier dessiné rangée par rangée, chaque case colorée par type.
+  Un appui sur une case retrouve la bouteille dans la liste.
 - **Photo de l'étiquette** — une vignette par ligne, dépliable en plein écran.
   Le bouton *Photographier* ouvre l'appareil photo du téléphone ; l'image est
   réduite à 480 px et compressée avant d'être enregistrée, faute de quoi trois
@@ -20,6 +27,28 @@ Inventaire de cave, utilisable hors ligne, installable sur le téléphone.
 - **Ajouter** — cuvée, producteur, millésime, couleur, appellation, quantité,
   emplacement, fenêtre d'apogée, photo, notes.
 - **Réglages** — export et import JSON, remise à zéro.
+
+## D'où viennent les fenêtres d'apogée
+
+Elles ne sortent pas d'une base de données par bouteille : pour la plupart de
+ces cuvées, aucune n'existe. Elles sont posées **par appellation et par type**,
+à partir de recherches sur les familles concernées — garde du Fronsac, de la
+Roussette de Savoie, du primitivo et du negroamaro du Salento, tenue des cavas,
+proseccos et bulles rosées — puis appliquées au millésime de chaque bouteille.
+
+C'est une estimation raisonnée, pas un verdict. Les notes de chaque bouteille
+disent sur quoi elle repose, et tout se corrige depuis le formulaire.
+
+## Le rangement proposé
+
+Le plan suit un principe simple : **l'air chaud monte**. Les rouges, qui
+supportent le mieux quelques degrés de plus, occupent le haut du casier ; les
+blancs et les bulles le milieu ; les rosés le bas, au plus frais. L'étagère du
+sol reçoit les grands formats et les vins d'apéritif.
+
+Une référence de plusieurs bouteilles occupe autant de cases consécutives à
+partir de son emplacement : `3B` avec deux bouteilles prend `3B` et `3C`. La
+rangée 5 est laissée libre pour les arrivées.
 
 ## Où sont les données
 

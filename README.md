@@ -12,8 +12,13 @@ Inventaire de cave, utilisable hors ligne, installable sur le téléphone.
 - **Apogée** — en renseignant une fenêtre de dégustation, chaque bouteille est
   signalée « à garder », « à boire » ou « apogée dépassée », et le compteur
   d'en-tête dit combien de bouteilles sont à leur apogée.
+- **Photo de l'étiquette** — une vignette par ligne, dépliable en plein écran.
+  Le bouton *Photographier* ouvre l'appareil photo du téléphone ; l'image est
+  réduite à 480 px et compressée avant d'être enregistrée, faute de quoi trois
+  clichés suffiraient à saturer le stockage. Les étiquettes du relevé initial
+  sont livrées avec l'application et fonctionnent hors ligne.
 - **Ajouter** — cuvée, producteur, millésime, couleur, appellation, quantité,
-  emplacement, fenêtre d'apogée, notes.
+  emplacement, fenêtre d'apogée, photo, notes.
 - **Réglages** — export et import JSON, remise à zéro.
 
 ## Où sont les données
@@ -26,7 +31,13 @@ cela veut dire trois choses :
 2. Effacer les données du site efface la cave.
 3. **L'export JSON est la seule sauvegarde.** Faites-le de temps en temps.
 
-L'import ajoute les bouteilles du fichier à la cave en place, sans écraser.
+L'import ajoute les bouteilles du fichier à la cave en place, sans écraser. Les
+photos prises depuis l'application voyagent dans l'export ; celles du relevé
+initial sont de simples chemins de fichiers.
+
+Une jauge dans les réglages montre la place occupée. Si le stockage déborde au
+moment d'enregistrer, la bouteille est conservée et c'est sa photo qui est
+abandonnée, avec un message : mieux vaut perdre une image qu'une référence.
 
 ## Mise à jour
 
@@ -71,6 +82,7 @@ Ouvrir l'adresse dans Chrome, puis **⋮ → Ajouter à l'écran d'accueil**.
 | `manifest.webmanifest` | Nom, couleurs et icônes de l'application installée |
 | `sw.js` | Cache hors ligne et mise à jour automatique |
 | `icon-*.png` | Icônes 192 et 512 px, plus une version maskable pour Android |
+| `etiquettes/` | Les 27 photos d'étiquettes du relevé initial, réduites à 640 px |
 | `.nojekyll` | Désactive Jekyll sur GitHub Pages : les fichiers sont servis tels quels |
 
 ## Avant

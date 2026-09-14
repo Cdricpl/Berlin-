@@ -69,6 +69,20 @@ sans qu'on ait à tout décaler, et l'œil ne confond pas deux zones voisines.
 | 12 | Rosés | 8 |
 | 15 | Grands formats et apéritifs | 7 |
 
+## Le relevé et vos données
+
+Le relevé livré avec l'application porte un numéro de version. Une cave
+enregistrée sous une version antérieure est **complétée au démarrage** : les
+champs vides — accords, apogée, emplacement, photo — sont remplis depuis le
+relevé, et **rien de ce qui a été saisi n'est écrasé**. Un emplacement qui n'est
+pas un code valide compte comme vide, sans quoi les mentions libres des
+premières versions resteraient hors plan.
+
+Sans ce mécanisme, tout enrichissement du relevé n'atteindrait jamais une cave
+déjà remplie : les filtres et le plan resteraient vides pendant que le code,
+lui, aurait l'air correct. Le bouton *Réappliquer le relevé de référence* dans
+les réglages relance l'opération à la demande.
+
 ## Où sont les données
 
 Dans le stockage local du navigateur, sur cet appareil, et **nulle part

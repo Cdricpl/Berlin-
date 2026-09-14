@@ -201,6 +201,7 @@ a{color:var(--wine);text-underline-offset:2px}
       <span class="stat"><b id="s-bouteilles">0</b><span>bouteilles</span></span>
       <span class="stat"><b id="s-references">0</b><span>références</span></span>
       <span class="stat"><b id="s-boire">0</b><span>à boire</span></span>
+      <span class="stat"><b id="s-valeur">—</b><span>valeur ≈</span></span>
     </div>
   </div>
 </header>
@@ -264,6 +265,7 @@ a{color:var(--wine);text-underline-offset:2px}
       <div class="duo">
         <div class="field"><label for="f-apogee1">Apogée de</label><input id="f-apogee1" type="number" inputmode="numeric" min="1900" max="2100" placeholder="2026"></div>
         <div class="field"><label for="f-apogee2">à</label><input id="f-apogee2" type="number" inputmode="numeric" min="1900" max="2100" placeholder="2032"></div>
+        <div class="field"><label for="f-prix">Prix, €</label><input id="f-prix" type="number" inputmode="decimal" min="0" step="0.5" placeholder="9"></div>
       </div>
       <div class="field">
         <label>À boire avec</label>
@@ -314,6 +316,13 @@ a{color:var(--wine);text-underline-offset:2px}
     <p class="tip" id="stockage"></p>
   </div>
 
+  <h2>Ce que valent ces bouteilles</h2>
+  <div class="card">
+    <p class="sub" style="margin:0 0 10px;color:var(--ink-60);font-size:14px">Le prix affiché est une estimation du <b>prix d'achat</b>, pas une cote de marché.</p>
+    <p class="tip warn">L'âge ne fait pas monter le prix d'un vin. Il ne le fait monter que pour une minorité de crus recherchés, échangés sur un vrai marché. Sur les trente-trois références de cette cave, aucune n'est dans ce cas : ce sont des vins à boire, pas des vins à revendre. Une bouteille de 2015 gardée dix ans de plus ne vaudra pas davantage, elle sera simplement passée.</p>
+    <p class="tip">Les estimations viennent des tarifs courants en Belgique pour ces cuvées, arrondis. Elles servent à savoir ce que représente la cave — pour une assurance, un partage, une succession — pas à spéculer. Chaque prix se corrige dans le formulaire.</p>
+  </div>
+
   <h2>Compléter</h2>
   <div class="card">
     <div class="btnrow">
@@ -361,7 +370,7 @@ a{color:var(--wine);text-underline-offset:2px}
      antérieure est complétée au démarrage : sans cela, les enrichissements du
      relevé — accords, apogées, emplacements, photos — n'atteindraient jamais
      une cave déjà remplie, et les filtres comme le plan resteraient vides. */
-  var VERSION = 3;
+  var VERSION = 4;
   var ANNEE = new Date().getFullYear();
   var COULEURS = {rouge:'Rouge', blanc:'Blanc', rose:'Rosé', bulles:'Bulles'};
   var ACCORDS = {aperitif:'Apéritif', poisson:'Poisson', 'viande-blanche':'Viande blanche',
@@ -382,39 +391,39 @@ a{color:var(--wine);text-underline-offset:2px}
      clichés : à corriger bouteille en main. Le casier en contient visiblement
      davantage que ce que les gros plans permettent de lire. */
   var DEPART = [
-    {nom:'Château Reygade', producteur:'Hubert Reygade', millesime:2022, couleur:'rouge', region:'Fronsac, Bordeaux', quantite:1, emplacement:'G1A', apogee1:2025, apogee2:2032, accord:'viande-rouge,fromage', notes:'15 %. Fronsac : 3 à 10 ans de garde, apogée entre 5 et 10 ans.'},
-    {nom:'Château Haut-Bélian', producteur:'GFA La Garrousse', millesime:2020, couleur:'rouge', region:'Bordeaux', quantite:1, emplacement:'G1B', apogee1:2023, apogee2:2029, accord:'viande-rouge,fromage', notes:'Médaille d\'argent au Concours de Lyon 2021.'},
-    {nom:'Vieux Château Renaissance', producteur:'Vignobles Turtaud', millesime:2015, couleur:'rouge', region:'Bordeaux', quantite:1, emplacement:'G1C', apogee1:2019, apogee2:2027, accord:'viande-rouge,fromage', notes:'Merlot-cabernet, grand millésime 2015. Mention manuscrite sur l\'étiquette. À boire maintenant, dernière belle fenêtre.'},
-    {nom:'Monte do Zambujeiro', producteur:'Quinta do Zambujeiro', millesime:2022, couleur:'rouge', region:'Portugal', quantite:1, emplacement:'G1D', apogee1:2025, apogee2:2032, accord:'viande-rouge,fromage'},
-    {nom:'Casillero del Diablo Reserva Privada', producteur:'Concha y Toro', millesime:2019, couleur:'rouge', region:'Valle del Maipo, Chili', quantite:1, emplacement:'G1E', apogee1:2022, apogee2:2029, accord:'viande-rouge,fromage', notes:'Cabernet sauvignon.'},
-    {nom:'Masso Antico Primitivo Single Vineyard', couleur:'rouge', region:'Salento, Pouilles', quantite:1, emplacement:'D1A', apogee1:2025, apogee2:2030, accord:'viande-rouge,fromage', notes:'Bio. Le primitivo demande du temps avant de se livrer. Millésime non lu sur la photo.'},
-    {nom:'Canonico Negroamaro', producteur:'Cantine Due Palme', couleur:'rouge', region:'Salento IGP', quantite:1, emplacement:'D1B', apogee1:2025, apogee2:2029, accord:'viande-rouge', notes:'Le negroamaro s\'ouvre plus tôt que le primitivo.'},
-    {nom:'Simplement !', producteur:'Domaine de L\'Horte', couleur:'rouge', region:'Magalas, Languedoc', quantite:1, emplacement:'D1C', apogee1:2025, apogee2:2029, accord:'viande-rouge,fromage', notes:'André Alingrin, paysan vigneron. 12 %.'},
-    {nom:'L\'Instant Tannay', producteur:'Romain Desbrosses, Domaine de Bel Air', millesime:2022, couleur:'rouge', region:'Coteaux de Tannay IGP', quantite:1, emplacement:'G2E', apogee1:2024, apogee2:2028, accord:'viande-blanche,viande-rouge', notes:'Pinot noir, 13 %. Léger : à servir frais, autour de 15 °C.'},
-    {nom:'Kef Red', producteur:'Karas', millesime:2024, couleur:'rouge', region:'Vallée de l\'Ararat, Arménie', quantite:2, emplacement:'G2A', apogee1:2025, apogee2:2029, accord:'viande-rouge,fromage', notes:'Areni et malbec.'},
-    {nom:'Les Grappes d\'Antan', millesime:2024, couleur:'rouge', region:'Côtes du Rhône', quantite:2, emplacement:'G2C', apogee1:2025, apogee2:2029, accord:'viande-rouge', notes:'Bio, mis en bouteille à la propriété.'},
-    {nom:'Noir 46 Malbec', couleur:'rouge', region:'France', quantite:2, emplacement:'D2A', apogee1:2025, apogee2:2028, accord:'viande-rouge'},
-    {nom:'Flore & Marius Merlot', couleur:'rouge', region:'France', quantite:1, emplacement:'D2C', apogee1:2025, apogee2:2028, accord:'viande-blanche,viande-rouge'},
-    {nom:'Roussette de Savoie', producteur:'Maison Philippe Viallet', millesime:2019, couleur:'blanc', region:'Savoie, Apremont', quantite:2, emplacement:'G6A', apogee1:2021, apogee2:2027, accord:'poisson,fromage', notes:'Altesse, 12,5 %. Une bonne cuvée tient 5 à 8 ans. À boire, et c\'est le vin de la fondue.'},
-    {nom:'Chapelle de Savoie', producteur:'Maison Philippe Viallet', millesime:2019, couleur:'blanc', region:'Savoie', quantite:1, emplacement:'G6C', apogee1:2020, apogee2:2026, accord:'poisson,fromage', notes:'Vue à l\'arrière-plan d\'une photo, étiquette partiellement lisible — à vérifier. À boire cette année.'},
-    {nom:'Pinot blanc', producteur:'J. Hubster', millesime:2021, couleur:'blanc', region:'Alsace', quantite:1, emplacement:'G6D', apogee1:2022, apogee2:2027, accord:'aperitif,poisson,viande-blanche'},
-    {nom:'Amandier Chardonnay', producteur:'Vignerons Ardéchois', couleur:'blanc', region:'Ardèche', quantite:1, emplacement:'G6E', apogee1:2025, apogee2:2028, accord:'poisson,viande-blanche', notes:'Sélections parcellaires.'},
-    {nom:'Solar 6 Chardonnay', producteur:'Gérard Bertrand', millesime:2025, couleur:'blanc', region:'Cévennes IGP', quantite:2, emplacement:'D6A', apogee1:2026, apogee2:2029, accord:'aperitif,poisson', notes:'Vin biologique.'},
-    {nom:'Colombard Chardonnay, Cuvée Réservée', producteur:'Vieux Papes', couleur:'blanc', region:'Vin de France', quantite:1, emplacement:'D6C', apogee1:2025, apogee2:2027, accord:'aperitif,poisson', notes:'11,5 %. Vin de soif, à boire jeune.'},
-    {nom:'Katz Brut', producteur:'Jean-Paul Meyer', couleur:'bulles', region:'Alsace', quantite:1, emplacement:'G9A', apogee1:2025, apogee2:2029, accord:'aperitif,poisson'},
-    {nom:'Cava Brut Organic Vintage', producteur:'Codorníu', couleur:'bulles', region:'Cava, Sant Sadurní d\'Anoia', quantite:1, emplacement:'G9B', apogee1:2024, apogee2:2029, accord:'aperitif,poisson', notes:'Méthode traditionnelle, bio. Un cava se boit dans ses 1 à 4 ans, un peu plus pour un millésimé.'},
-    {nom:'Prosecco Millesimato Brut', producteur:'X2 For Due', couleur:'bulles', region:'Prosecco DOC', quantite:1, emplacement:'G9C', apogee1:2025, apogee2:2027, accord:'aperitif', notes:'Un prosecco se boit dans l\'année, trois ans au plus.'},
-    {nom:'¡Hola! Mediterráneo Brut Rosé', couleur:'bulles', region:'Espagne', quantite:1, emplacement:'G9D', apogee1:2025, apogee2:2027, accord:'aperitif', notes:'Coupage naturel traditionnel. Les bulles rosées sont fragiles : deux à trois ans au plus.'},
-    {nom:'Granbeau Rosé, Grande Cuvée', couleur:'rose', region:'France', quantite:2, emplacement:'G12A', apogee1:2025, apogee2:2027, accord:'aperitif,poisson'},
-    {nom:'La Villa Angeli', couleur:'rose', region:'Corse', quantite:2, emplacement:'G12C', apogee1:2025, apogee2:2027, accord:'aperitif,poisson', notes:'Robe très pâle sur la photo : blanc ou rosé, à confirmer bouteille en main.'},
-    {nom:'Amicale', producteur:'Cantine di Ora', couleur:'rose', region:'Italie', quantite:1, emplacement:'G12E', apogee1:2025, apogee2:2027, accord:'aperitif,poisson'},
-    {nom:'Castel del Monte Rosato', producteur:'Grifo', couleur:'rose', region:'Castel del Monte DOP, Pouilles', quantite:1, emplacement:'D12A', apogee1:2025, apogee2:2027, accord:'aperitif,poisson'},
-    {nom:'Rosé Piscine', producteur:'Vinovalie', couleur:'rose', region:'France', quantite:1, emplacement:'D12B', apogee1:2025, apogee2:2027, accord:'aperitif', notes:'Celui qui se boit sur glaçons.'},
-    {nom:'Terres d\'Orb', producteur:'Cave de Roquebrun', millesime:2017, couleur:'rose', region:'Pays d\'Oc IGP', quantite:1, emplacement:'D12C', apogee1:2017, apogee2:2019, accord:'aperitif', notes:'Un rosé de 2017 : la fenêtre est posée courte à dessein, il est très probablement passé. À goûter avant d\'y compter.'},
-    {nom:'Rivaner, spécial pour Maitrank', producteur:'Caves St. Martin', couleur:'blanc', region:'Moselle luxembourgeoise, Remich', quantite:4, emplacement:'G15A', apogee1:2023, apogee2:2027, accord:'aperitif', notes:'Bouteilles de 100 cl, 11,5 %, lot L-01/23. Le vin de base du Maitrank.'},
-    {nom:'Rivaner, spécial pour Maitrank', producteur:'Domaines Vinsmoselle', couleur:'blanc', region:'Moselle luxembourgeoise', quantite:1, emplacement:'G15E', apogee1:2024, apogee2:2028, accord:'aperitif', notes:'Capsule dorée, cuvée « à votre santé ».'},
-    {nom:'Vintense Chardonnay', producteur:'Vintense', couleur:'blanc', quantite:1, emplacement:'D15A', apogee1:2025, apogee2:2027, accord:'aperitif', notes:'Sans alcool, 0,0 %.'},
-    {nom:'Vintense', producteur:'Vintense', couleur:'blanc', quantite:1, emplacement:'D15B', apogee1:2025, apogee2:2027, accord:'aperitif', notes:'Sans alcool, 0,0 %. Cuvée illisible sur la photo — à compléter.'}
+    {nom:'Château Reygade', producteur:'Hubert Reygade', millesime:2022, couleur:'rouge', region:'Fronsac, Bordeaux', quantite:1, emplacement:'G1A', apogee1:2025, apogee2:2032, prix:12, accord:'viande-rouge,fromage', notes:'15 %. Fronsac : 3 à 10 ans de garde, apogée entre 5 et 10 ans.'},
+    {nom:'Château Haut-Bélian', producteur:'GFA La Garrousse', millesime:2020, couleur:'rouge', region:'Bordeaux', quantite:1, emplacement:'G1B', apogee1:2023, apogee2:2029, prix:9, accord:'viande-rouge,fromage', notes:'Médaille d\'argent au Concours de Lyon 2021.'},
+    {nom:'Vieux Château Renaissance', producteur:'Vignobles Turtaud', millesime:2015, couleur:'rouge', region:'Bordeaux', quantite:1, emplacement:'G1C', apogee1:2019, apogee2:2027, prix:10, accord:'viande-rouge,fromage', notes:'Merlot-cabernet, grand millésime 2015. Mention manuscrite sur l\'étiquette. À boire maintenant, dernière belle fenêtre.'},
+    {nom:'Monte do Zambujeiro', producteur:'Quinta do Zambujeiro', millesime:2022, couleur:'rouge', region:'Portugal', quantite:1, emplacement:'G1D', apogee1:2025, apogee2:2032, prix:12, accord:'viande-rouge,fromage'},
+    {nom:'Casillero del Diablo Reserva Privada', producteur:'Concha y Toro', millesime:2019, couleur:'rouge', region:'Valle del Maipo, Chili', quantite:1, emplacement:'G1E', apogee1:2022, apogee2:2029, prix:10, accord:'viande-rouge,fromage', notes:'Cabernet sauvignon.'},
+    {nom:'Masso Antico Primitivo Single Vineyard', couleur:'rouge', region:'Salento, Pouilles', quantite:1, emplacement:'D1A', apogee1:2025, apogee2:2030, prix:8, accord:'viande-rouge,fromage', notes:'Bio. Le primitivo demande du temps avant de se livrer. Millésime non lu sur la photo.'},
+    {nom:'Canonico Negroamaro', producteur:'Cantine Due Palme', couleur:'rouge', region:'Salento IGP', quantite:1, emplacement:'D1B', apogee1:2025, apogee2:2029, prix:7, accord:'viande-rouge', notes:'Le negroamaro s\'ouvre plus tôt que le primitivo.'},
+    {nom:'Simplement !', producteur:'Domaine de L\'Horte', couleur:'rouge', region:'Magalas, Languedoc', quantite:1, emplacement:'D1C', apogee1:2025, apogee2:2029, prix:9, accord:'viande-rouge,fromage', notes:'André Alingrin, paysan vigneron. 12 %.'},
+    {nom:'L\'Instant Tannay', producteur:'Romain Desbrosses, Domaine de Bel Air', millesime:2022, couleur:'rouge', region:'Coteaux de Tannay IGP', quantite:1, emplacement:'G2E', apogee1:2024, apogee2:2028, prix:13, accord:'viande-blanche,viande-rouge', notes:'Pinot noir, 13 %. Léger : à servir frais, autour de 15 °C.'},
+    {nom:'Kef Red', producteur:'Karas', millesime:2024, couleur:'rouge', region:'Vallée de l\'Ararat, Arménie', quantite:2, emplacement:'G2A', apogee1:2025, apogee2:2029, prix:12, accord:'viande-rouge,fromage', notes:'Areni et malbec.'},
+    {nom:'Les Grappes d\'Antan', millesime:2024, couleur:'rouge', region:'Côtes du Rhône', quantite:2, emplacement:'G2C', apogee1:2025, apogee2:2029, prix:8, accord:'viande-rouge', notes:'Bio, mis en bouteille à la propriété.'},
+    {nom:'Noir 46 Malbec', couleur:'rouge', region:'France', quantite:2, emplacement:'D2A', apogee1:2025, apogee2:2028, prix:6, accord:'viande-rouge'},
+    {nom:'Flore & Marius Merlot', couleur:'rouge', region:'France', quantite:1, emplacement:'D2C', apogee1:2025, apogee2:2028, prix:6, accord:'viande-blanche,viande-rouge'},
+    {nom:'Roussette de Savoie', producteur:'Maison Philippe Viallet', millesime:2019, couleur:'blanc', region:'Savoie, Apremont', quantite:2, emplacement:'G6A', apogee1:2021, apogee2:2027, prix:11, accord:'poisson,fromage', notes:'Altesse, 12,5 %. Une bonne cuvée tient 5 à 8 ans. À boire, et c\'est le vin de la fondue.'},
+    {nom:'Chapelle de Savoie', producteur:'Maison Philippe Viallet', millesime:2019, couleur:'blanc', region:'Savoie', quantite:1, emplacement:'G6C', apogee1:2020, apogee2:2026, prix:9, accord:'poisson,fromage', notes:'Vue à l\'arrière-plan d\'une photo, étiquette partiellement lisible — à vérifier. À boire cette année.'},
+    {nom:'Pinot blanc', producteur:'J. Hubster', millesime:2021, couleur:'blanc', region:'Alsace', quantite:1, emplacement:'G6D', apogee1:2022, apogee2:2027, prix:8, accord:'aperitif,poisson,viande-blanche'},
+    {nom:'Amandier Chardonnay', producteur:'Vignerons Ardéchois', couleur:'blanc', region:'Ardèche', quantite:1, emplacement:'G6E', apogee1:2025, apogee2:2028, prix:8, accord:'poisson,viande-blanche', notes:'Sélections parcellaires.'},
+    {nom:'Solar 6 Chardonnay', producteur:'Gérard Bertrand', millesime:2025, couleur:'blanc', region:'Cévennes IGP', quantite:2, emplacement:'D6A', apogee1:2026, apogee2:2029, prix:10, accord:'aperitif,poisson', notes:'Vin biologique.'},
+    {nom:'Colombard Chardonnay, Cuvée Réservée', producteur:'Vieux Papes', couleur:'blanc', region:'Vin de France', quantite:1, emplacement:'D6C', apogee1:2025, apogee2:2027, prix:3, accord:'aperitif,poisson', notes:'11,5 %. Vin de soif, à boire jeune.'},
+    {nom:'Katz Brut', producteur:'Jean-Paul Meyer', couleur:'bulles', region:'Alsace', quantite:1, emplacement:'G9A', apogee1:2025, apogee2:2029, prix:14, accord:'aperitif,poisson'},
+    {nom:'Cava Brut Organic Vintage', producteur:'Codorníu', couleur:'bulles', region:'Cava, Sant Sadurní d\'Anoia', quantite:1, emplacement:'G9B', apogee1:2024, apogee2:2029, prix:12, accord:'aperitif,poisson', notes:'Méthode traditionnelle, bio. Un cava se boit dans ses 1 à 4 ans, un peu plus pour un millésimé.'},
+    {nom:'Prosecco Millesimato Brut', producteur:'X2 For Due', couleur:'bulles', region:'Prosecco DOC', quantite:1, emplacement:'G9C', apogee1:2025, apogee2:2027, prix:8, accord:'aperitif', notes:'Un prosecco se boit dans l\'année, trois ans au plus.'},
+    {nom:'¡Hola! Mediterráneo Brut Rosé', couleur:'bulles', region:'Espagne', quantite:1, emplacement:'G9D', apogee1:2025, apogee2:2027, prix:8, accord:'aperitif', notes:'Coupage naturel traditionnel. Les bulles rosées sont fragiles : deux à trois ans au plus.'},
+    {nom:'Granbeau Rosé, Grande Cuvée', couleur:'rose', region:'France', quantite:2, emplacement:'G12A', apogee1:2025, apogee2:2027, prix:7, accord:'aperitif,poisson'},
+    {nom:'La Villa Angeli', couleur:'rose', region:'Corse', quantite:2, emplacement:'G12C', apogee1:2025, apogee2:2027, prix:10, accord:'aperitif,poisson', notes:'Robe très pâle sur la photo : blanc ou rosé, à confirmer bouteille en main.'},
+    {nom:'Amicale', producteur:'Cantine di Ora', couleur:'rose', region:'Italie', quantite:1, emplacement:'G12E', apogee1:2025, apogee2:2027, prix:7, accord:'aperitif,poisson'},
+    {nom:'Castel del Monte Rosato', producteur:'Grifo', couleur:'rose', region:'Castel del Monte DOP, Pouilles', quantite:1, emplacement:'D12A', apogee1:2025, apogee2:2027, prix:8, accord:'aperitif,poisson'},
+    {nom:'Rosé Piscine', producteur:'Vinovalie', couleur:'rose', region:'France', quantite:1, emplacement:'D12B', apogee1:2025, apogee2:2027, prix:9, accord:'aperitif', notes:'Celui qui se boit sur glaçons.'},
+    {nom:'Terres d\'Orb', producteur:'Cave de Roquebrun', millesime:2017, couleur:'rose', region:'Pays d\'Oc IGP', quantite:1, emplacement:'D12C', apogee1:2017, apogee2:2019, prix:7, accord:'aperitif', notes:'Un rosé de 2017 : la fenêtre est posée courte à dessein, il est très probablement passé. À goûter avant d\'y compter.'},
+    {nom:'Rivaner, spécial pour Maitrank', producteur:'Caves St. Martin', couleur:'blanc', region:'Moselle luxembourgeoise, Remich', quantite:4, emplacement:'G15A', apogee1:2023, apogee2:2027, prix:7, accord:'aperitif', notes:'Bouteilles de 100 cl, 11,5 %, lot L-01/23. Le vin de base du Maitrank.'},
+    {nom:'Rivaner, spécial pour Maitrank', producteur:'Domaines Vinsmoselle', couleur:'blanc', region:'Moselle luxembourgeoise', quantite:1, emplacement:'G15E', apogee1:2024, apogee2:2028, prix:7, accord:'aperitif', notes:'Capsule dorée, cuvée « à votre santé ».'},
+    {nom:'Vintense Chardonnay', producteur:'Vintense', couleur:'blanc', quantite:1, emplacement:'D15A', apogee1:2025, apogee2:2027, prix:5, accord:'aperitif', notes:'Sans alcool, 0,0 %.'},
+    {nom:'Vintense', producteur:'Vintense', couleur:'blanc', quantite:1, emplacement:'D15B', apogee1:2025, apogee2:2027, prix:5, accord:'aperitif', notes:'Sans alcool, 0,0 %. Cuvée illisible sur la photo — à compléter.'}
   ];
 
   /* Étiquettes photographiées, rattachées par le nom de cuvée. Les entrées qui
@@ -476,7 +485,7 @@ a{color:var(--wine);text-underline-offset:2px}
       if (!m) return;
       var avant = champsRemplis;
 
-      ['region','millesime','apogee1','apogee2','accord','notes'].forEach(function(c){
+      ['region','millesime','apogee1','apogee2','accord','prix','notes'].forEach(function(c){
         if (!b[c] && m[c]) { b[c] = m[c]; champsRemplis++; }
       });
       if (!estUnCode(b.emplacement) && m.emplacement) {
@@ -499,6 +508,7 @@ a{color:var(--wine);text-underline-offset:2px}
       b.accord = m.accord || '';
       b.apogee1 = m.apogee1 || '';
       b.apogee2 = m.apogee2 || '';
+      b.prix = m.prix || '';
       cave.push(b);
     });
     if (ecrire()) { dire(DEPART.length + ' références chargées'); rendre(); }
@@ -570,6 +580,17 @@ a{color:var(--wine);text-underline-offset:2px}
     texte(document.getElementById('s-bouteilles'), bouteilles);
     texte(document.getElementById('s-references'), cave.length);
     texte(document.getElementById('s-boire'), aBoire);
+
+    var valeur = 0, chiffrees = 0;
+    cave.forEach(function(b){
+      var pr = parseFloat(String(b.prix).replace(',', '.'));
+      var q = parseInt(b.quantite, 10) || 0;
+      if (!isNaN(pr) && pr > 0) { valeur += pr * q; chiffrees += q; }
+    });
+    var el = document.getElementById('s-valeur');
+    texte(el, valeur ? Math.round(valeur) + ' €' : '—');
+    el.parentNode.title = chiffrees + ' bouteilles chiffrées sur ' + 
+      cave.reduce(function(t, b){ return t + (parseInt(b.quantite, 10) || 0); }, 0);
   }
 
   function ligne(b){
@@ -596,6 +617,7 @@ a{color:var(--wine);text-underline-offset:2px}
     var bouts = [];
     if (b.producteur) bouts.push(b.producteur);
     if (b.region) bouts.push(b.region);
+    if (b.prix) bouts.push('≈ ' + String(b.prix).replace('.', ',') + ' €');
     if (bouts.length) {
       var meta = document.createElement('div');
       meta.className = 'meta';
@@ -1004,8 +1026,8 @@ a{color:var(--wine);text-underline-offset:2px}
   visionLeg.className = 'legende';
   vision.appendChild(visionImg);
   vision.appendChild(visionLeg);
-  vision.addEventListener('click', function(){ vision.hidden = true; });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') vision.hidden = true; });
+  vision.addEventListener('click', function(){ fermerVision(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') fermerVision(); });
   document.body.appendChild(vision);
 
   function voir(b){
@@ -1013,10 +1035,19 @@ a{color:var(--wine);text-underline-offset:2px}
     visionImg.alt = 'Étiquette de ' + b.nom;
     visionLeg.textContent = b.nom + (b.millesime ? ' ' + b.millesime : '');
     vision.hidden = false;
+    try { history.pushState({ vue: 'photo' }, ''); } catch (e) {}
+  }
+
+  /* Refermer par un appui doit consommer l'entrée d'historique, sans quoi le
+     geste de retour suivant ne ferait rien du tout. */
+  function fermerVision(){
+    if (vision.hidden) return;
+    vision.hidden = true;
+    if (history.state && history.state.vue === 'photo') { try { history.back(); } catch (e) {} }
   }
 
   /* ---------- formulaire ---------- */
-  var champs = ['nom','producteur','millesime','couleur','region','quantite','emplacement','apogee1','apogee2','notes'];
+  var champs = ['nom','producteur','millesime','couleur','region','quantite','emplacement','apogee1','apogee2','prix','notes'];
 
   function remplir(b){
     document.getElementById('f-id').value = b ? b.id : '';
@@ -1165,7 +1196,9 @@ a{color:var(--wine);text-underline-offset:2px}
 
   /* ---------- onglets ---------- */
   var onglets = Array.prototype.slice.call(document.querySelectorAll('.tabs button'));
-  function ouvrir(tid){
+  var ongletActuel = 't-cave';
+
+  function ouvrir(tid, sansHistorique){
     onglets.forEach(function(b){
       var on = b.id === tid;
       b.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -1174,7 +1207,23 @@ a{color:var(--wine);text-underline-offset:2px}
       p.hidden = !on;
     });
     window.scrollTo(0, 0);
+
+    /* Sur Android, une application installée sans historique se ferme au
+       premier geste de retour. Chaque navigation interne empile donc une
+       entrée : le retour ramène à l'onglet précédent, et ne quitte
+       l'application que depuis la Cave, là où c'est attendu. */
+    if (!sansHistorique && tid !== ongletActuel) {
+      try { history.pushState({ vue: tid }, ''); } catch (e) {}
+    }
+    ongletActuel = tid;
   }
+
+  window.addEventListener('popstate', function (e) {
+    if (!vision.hidden) { vision.hidden = true; return; }
+    var cible = (e.state && e.state.vue) || 't-cave';
+    if (cible === 'photo') cible = 't-cave';
+    ouvrir(cible, true);
+  });
   onglets.forEach(function(b){
     b.addEventListener('click', function(){
       if (b.id === 't-ajout' && document.getElementById('f-id').value) remplir(null);
@@ -1198,6 +1247,8 @@ a{color:var(--wine);text-underline-offset:2px}
   window.__caveDire = dire;
 
   /* ---------- démarrage ---------- */
+  try { history.replaceState({ vue: 't-cave' }, ''); } catch (e) {}
+
   cave = lire();
 
   if (cave.length && versionLue < VERSION) {

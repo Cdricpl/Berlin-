@@ -18,6 +18,40 @@ var SHELL_FILES = [
   './icon-maskable-512.png'
 ];
 
+/* Étiquettes photographiées : mises en cache à l'installation pour être
+   consultables hors ligne, mais tenues hors de la revalidation — elles ne
+   changent jamais, et les redemander toutes les trente secondes serait
+   27 requêtes pour rien. */
+var ASSETS = [
+  './etiquettes/amandier-chardonnay.jpg',
+  './etiquettes/canonico-negroamaro.jpg',
+  './etiquettes/casillero-del-diablo.jpg',
+  './etiquettes/castel-del-monte.jpg',
+  './etiquettes/chateau-haut-belian.jpg',
+  './etiquettes/chateau-reygade.jpg',
+  './etiquettes/codorniu-cava.jpg',
+  './etiquettes/etagere-du-bas.jpg',
+  './etiquettes/flore-et-marius.jpg',
+  './etiquettes/grappes-dantan.jpg',
+  './etiquettes/hola-mediterraneo.jpg',
+  './etiquettes/hubster-pinot-blanc.jpg',
+  './etiquettes/instant-tannay.jpg',
+  './etiquettes/katz-brut.jpg',
+  './etiquettes/kef-karas.jpg',
+  './etiquettes/masso-antico.jpg',
+  './etiquettes/monte-do-zambujeiro.jpg',
+  './etiquettes/noir-46.jpg',
+  './etiquettes/prosecco-x2.jpg',
+  './etiquettes/rose-piscine.jpg',
+  './etiquettes/roses-granbeau-amicale-angeli.jpg',
+  './etiquettes/roussette-de-savoie.jpg',
+  './etiquettes/simplement-lhorte.jpg',
+  './etiquettes/solar-6-chardonnay.jpg',
+  './etiquettes/terres-dorb.jpg',
+  './etiquettes/vieux-chateau-renaissance.jpg',
+  './etiquettes/vieux-papes.jpg'
+];
+
 var INDEX = './index.html';
 
 /* Court-circuite le cache HTTP du navigateur. GitHub Pages sert les fichiers
@@ -72,7 +106,7 @@ function syncShell() {
 self.addEventListener('install', function (e) {
   e.waitUntil(
     caches.open(SHELL).then(function (cache) {
-      return Promise.all(SHELL_FILES.map(function (u) {
+      return Promise.all(SHELL_FILES.concat(ASSETS).map(function (u) {
         return fromNetwork(u).then(function (res) {
           if (res && res.ok) return cache.put(u, res);
         }).catch(function () {});

@@ -92,6 +92,28 @@ input,select,textarea,button{font-family:inherit;font-size:16px;color:var(--ink)
 .bottle .open{background:none;border:0;padding:0;margin-top:6px;cursor:pointer;font-size:12px;
   color:var(--ink-60);text-decoration:underline;text-underline-offset:2px}
 
+.bottle .vignette{width:50px;height:68px;object-fit:cover;border-radius:6px;flex:0 0 auto;
+  border:1px solid var(--line-strong);background:var(--ground);cursor:zoom-in}
+.photo-champ{display:flex;gap:12px;align-items:flex-start}
+.photo-apercu{width:78px;height:104px;object-fit:cover;border-radius:8px;
+  border:1px solid var(--line-strong);background:var(--ground)}
+.photo-vide{width:78px;height:104px;border-radius:8px;border:1px dashed var(--line-strong);
+  background:var(--ground);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.photo-vide svg{width:26px;height:26px;stroke:var(--ink-40);fill:none;stroke-width:1.5}
+
+.visionneuse{position:fixed;inset:0;z-index:60;background:rgba(27,20,18,.93);
+  display:flex;align-items:center;justify-content:center;padding:18px;cursor:zoom-out}
+/* Sans cette ligne, le display:flex du sélecteur de classe l'emporte sur le
+   [hidden] du navigateur : la visionneuse reste invisible mais avale tous les
+   appuis de l'application. */
+.visionneuse[hidden]{display:none}
+.visionneuse img{max-width:100%;max-height:100%;border-radius:8px}
+.visionneuse .legende{position:absolute;left:0;right:0;bottom:18px;text-align:center;
+  color:var(--ground);font-size:14px;font-weight:600;padding:0 18px;pointer-events:none}
+
+.jauge{height:6px;background:rgba(27,20,18,.12);border-radius:999px;overflow:hidden;margin:10px 0 6px}
+.jauge i{display:block;height:100%;background:var(--wine)}
+
 .empty{text-align:center;padding:36px 16px;color:var(--ink-60)}
 .empty svg{width:46px;height:46px;stroke:var(--line-strong);fill:none;stroke-width:1.5;margin-bottom:10px}
 .empty b{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
@@ -179,6 +201,21 @@ a{color:var(--wine);text-underline-offset:2px}
         <div class="field"><label for="f-apogee1">Apogée de</label><input id="f-apogee1" type="number" inputmode="numeric" min="1900" max="2100" placeholder="2026"></div>
         <div class="field"><label for="f-apogee2">à</label><input id="f-apogee2" type="number" inputmode="numeric" min="1900" max="2100" placeholder="2032"></div>
       </div>
+      <div class="field">
+        <label>Photo de l'étiquette</label>
+        <div class="photo-champ">
+          <img id="f-apercu" class="photo-apercu" alt="Étiquette de la bouteille" hidden>
+          <div id="f-apercu-vide" class="photo-vide"><svg viewBox="0 0 24 24"><path d="M3 7h4l2-2h6l2 2h4v12H3z"/><circle cx="12" cy="13" r="3.2"/></svg></div>
+          <div style="flex:1">
+            <input type="file" id="f-photo" accept="image/*" capture="environment" hidden>
+            <div class="btnrow" style="margin:0">
+              <label class="btn ghost" for="f-photo" style="margin:0">Photographier</label>
+              <button type="button" class="btn ghost" id="f-photo-off" hidden>Retirer</button>
+            </div>
+            <p class="tip" style="margin-top:9px">Réduite à 480 px avant enregistrement, pour ménager le stockage du navigateur.</p>
+          </div>
+        </div>
+      </div>
       <div class="field"><label for="f-notes">Notes</label><textarea id="f-notes" placeholder="Où achetée, avec quoi la boire, ce qu'elle vaut…"></textarea></div>
       <div class="btnrow">
         <button type="submit" class="btn" id="f-ok">Ajouter à la cave</button>
@@ -198,6 +235,7 @@ a{color:var(--wine);text-underline-offset:2px}
       <label class="btn ghost" for="import" style="margin:0">Importer un fichier</label>
       <input type="file" id="import" accept="application/json,.json" hidden>
     </div>
+    <div class="jauge"><i id="jauge-barre" style="width:0"></i></div>
     <p class="tip" id="stockage"></p>
   </div>
 
@@ -314,11 +352,49 @@ a{color:var(--wine);text-underline-offset:2px}
      region:'Cévennes IGP', quantite:2, notes:'Vin biologique.'}
   ];
 
+  /* Étiquettes photographiées, rattachées par le nom de cuvée. Les entrées qui
+     partagent un nom partagent la photo, ce qui est voulu : les deux Rivaner
+     et les deux Vintense figurent sur le même cliché de l'étagère du bas. */
+  var ETIQUETTES = {
+    'Rivaner, spécial pour Maitrank':'etagere-du-bas',
+    'Vintense Chardonnay':'etagere-du-bas',
+    'Vintense':'etagere-du-bas',
+    'Katz Brut':'katz-brut',
+    'Prosecco Millesimato Brut':'prosecco-x2',
+    'Cava Brut Organic Vintage':'codorniu-cava',
+    'Kef Red':'kef-karas',
+    'Les Grappes d\'Antan':'grappes-dantan',
+    'Château Reygade':'chateau-reygade',
+    'Monte do Zambujeiro':'monte-do-zambujeiro',
+    'Masso Antico Primitivo Single Vineyard':'masso-antico',
+    'Canonico Negroamaro':'canonico-negroamaro',
+    'Noir 46 Malbec':'noir-46',
+    'Flore & Marius Merlot':'flore-et-marius',
+    'Simplement !':'simplement-lhorte',
+    'Vieux Château Renaissance':'vieux-chateau-renaissance',
+    'Château Haut-Bélian':'chateau-haut-belian',
+    'Casillero del Diablo Reserva Privada':'casillero-del-diablo',
+    'L\'Instant Tannay':'instant-tannay',
+    'Granbeau Rosé, Grande Cuvée':'roses-granbeau-amicale-angeli',
+    'Amicale':'roses-granbeau-amicale-angeli',
+    'La Villa Angeli':'roses-granbeau-amicale-angeli',
+    'Castel del Monte Rosato':'castel-del-monte',
+    'Rosé Piscine':'rose-piscine',
+    'Terres d\'Orb':'terres-dorb',
+    '¡Hola! Mediterráneo Brut Rosé':'hola-mediterraneo',
+    'Pinot blanc':'hubster-pinot-blanc',
+    'Roussette de Savoie':'roussette-de-savoie',
+    'Amandier Chardonnay':'amandier-chardonnay',
+    'Colombard Chardonnay, Cuvée Réservée':'vieux-papes',
+    'Solar 6 Chardonnay':'solar-6-chardonnay'
+  };
+
   function charger(){
     DEPART.forEach(function(m){
       var b = {id: id()};
       champs.forEach(function(c){ b[c] = m[c] == null ? '' : m[c]; });
       b.quantite = m.quantite == null ? 1 : m.quantite;
+      b.photo = ETIQUETTES[m.nom] ? 'etiquettes/' + ETIQUETTES[m.nom] + '.jpg' : '';
       cave.push(b);
     });
     if (ecrire()) { dire(DEPART.length + ' références chargées'); rendre(); }
@@ -387,6 +463,15 @@ a{color:var(--wine);text-underline-offset:2px}
   function ligne(b){
     var li = document.createElement('li');
     li.className = 'bottle ' + (b.couleur || '');
+
+    if (b.photo) {
+      var vign = document.createElement('img');
+      vign.className = 'vignette';
+      vign.src = b.photo;
+      vign.alt = 'Étiquette de ' + b.nom;
+      vign.addEventListener('click', function(){ voir(b); });
+      li.appendChild(vign);
+    }
 
     var main = document.createElement('div');
     main.className = 'main';
@@ -490,6 +575,31 @@ a{color:var(--wine);text-underline-offset:2px}
     if (!vus.length) { liste.appendChild(vide()); }
     else { vus.forEach(function(b){ liste.appendChild(ligne(b)); }); }
     stats();
+    jauge();
+  }
+
+  /* Les photos sont de loin ce qui pèse : la jauge rend la limite visible
+     avant qu'elle ne se rappelle au mauvais moment. */
+  function jauge(){
+    var barre = document.getElementById('jauge-barre');
+    var texte = document.getElementById('stockage');
+    if (!barre || !texte) return;
+    var brut;
+    try { brut = localStorage.getItem(CLE) || ''; }
+    catch (e) {
+      texte.textContent = 'Ce navigateur refuse le stockage local : la cave ne survivra pas à la fermeture. Navigation privée ?';
+      barre.style.width = '0';
+      return;
+    }
+    var LIMITE = 5000000;
+    var pris = brut.length;
+    var pct = Math.min(100, Math.round(pris / LIMITE * 100));
+    var avec = 0;
+    cave.forEach(function(b){ if (b.photo) avec++; });
+    barre.style.width = pct + '%';
+    texte.textContent = (pris / 1048576).toFixed(2).replace('.', ',') + ' Mo utilisés sur environ 5 Mo — '
+      + avec + ' étiquette' + (avec > 1 ? 's' : '') + ' sur ' + cave.length + ' références. '
+      + 'Enregistré dans ce navigateur : effacer les données du site efface la cave.';
   }
 
   function bouger(bid, delta){
@@ -509,6 +619,81 @@ a{color:var(--wine);text-underline-offset:2px}
     return null;
   }
 
+  /* ---------- photo d'étiquette ---------- */
+
+  /* Une photo de téléphone pèse plusieurs méga-octets ; le stockage local en
+     offre cinq en tout. On réduit donc avant d'enregistrer : 480 px sur le
+     grand côté suffit largement à relire une appellation. */
+  function reduire(fichier){
+    return new Promise(function(ok, ko){
+      var lecteur = new FileReader();
+      lecteur.onerror = function(){ ko(new Error('lecture')); };
+      lecteur.onload = function(){
+        var img = new Image();
+        img.onerror = function(){ ko(new Error('image')); };
+        img.onload = function(){
+          var MAX = 480;
+          var r = Math.min(1, MAX / Math.max(img.width, img.height));
+          var c = document.createElement('canvas');
+          c.width = Math.round(img.width * r);
+          c.height = Math.round(img.height * r);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          ok(c.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = lecteur.result;
+      };
+      lecteur.readAsDataURL(fichier);
+    });
+  }
+
+  var photoCourante = '';
+
+  function montrerPhoto(){
+    var ap = document.getElementById('f-apercu');
+    var vd = document.getElementById('f-apercu-vide');
+    if (photoCourante) { ap.src = photoCourante; ap.hidden = false; vd.hidden = true; }
+    else { ap.removeAttribute('src'); ap.hidden = true; vd.hidden = false; }
+    document.getElementById('f-photo-off').hidden = !photoCourante;
+  }
+
+  document.getElementById('f-photo').addEventListener('change', function(){
+    var f = this.files && this.files[0];
+    this.value = '';
+    if (!f) return;
+    reduire(f).then(function(d){
+      photoCourante = d;
+      montrerPhoto();
+      dire('Étiquette prête — enregistrez la bouteille');
+    }).catch(function(){ dire('Cette image n\'a pas pu être lue'); });
+  });
+
+  document.getElementById('f-photo-off').addEventListener('click', function(){
+    photoCourante = '';
+    montrerPhoto();
+  });
+
+  /* Visionneuse plein écran, créée une fois. */
+  var vision = document.createElement('div');
+  vision.className = 'visionneuse';
+  vision.hidden = true;
+  vision.setAttribute('role', 'dialog');
+  vision.setAttribute('aria-label', 'Étiquette en grand');
+  var visionImg = document.createElement('img');
+  var visionLeg = document.createElement('p');
+  visionLeg.className = 'legende';
+  vision.appendChild(visionImg);
+  vision.appendChild(visionLeg);
+  vision.addEventListener('click', function(){ vision.hidden = true; });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') vision.hidden = true; });
+  document.body.appendChild(vision);
+
+  function voir(b){
+    visionImg.src = b.photo;
+    visionImg.alt = 'Étiquette de ' + b.nom;
+    visionLeg.textContent = b.nom + (b.millesime ? ' ' + b.millesime : '');
+    vision.hidden = false;
+  }
+
   /* ---------- formulaire ---------- */
   var champs = ['nom','producteur','millesime','couleur','region','quantite','emplacement','apogee1','apogee2','notes'];
 
@@ -518,6 +703,8 @@ a{color:var(--wine);text-underline-offset:2px}
       var el = document.getElementById('f-' + c);
       el.value = b ? (b[c] == null ? '' : b[c]) : (c === 'quantite' ? '1' : (c === 'couleur' ? 'rouge' : ''));
     });
+    photoCourante = b && b.photo ? b.photo : '';
+    montrerPhoto();
     var edition = !!b;
     document.getElementById('form-titre').textContent = edition ? 'Modifier la bouteille' : 'Nouvelle bouteille';
     document.getElementById('f-ok').textContent = edition ? 'Enregistrer' : 'Ajouter à la cave';
@@ -544,7 +731,22 @@ a{color:var(--wine);text-underline-offset:2px}
     if (!b.nom) return;
     b.quantite = parseInt(b.quantite, 10);
     if (isNaN(b.quantite) || b.quantite < 0) b.quantite = 1;
+    var photoAvant = b.photo || '';
+    b.photo = photoCourante;
     if (neuf) cave.push(b);
+    if (!ecrire() && photoCourante) {
+      /* Presque toujours la photo qui fait déborder : on la retire et on
+         réessaie, pour ne pas perdre la bouteille elle-même. */
+      b.photo = photoAvant;
+      if (ecrire()) {
+        photoCourante = photoAvant;
+        montrerPhoto();
+        dire('Stockage plein : bouteille enregistrée sans sa photo');
+        rendre();
+        ouvrir('t-cave');
+        return;
+      }
+    }
     if (ecrire()) {
       dire(neuf ? b.nom + ' ajoutée' : 'Modifications enregistrées');
       remplir(null);
@@ -669,14 +871,6 @@ a{color:var(--wine);text-underline-offset:2px}
   remplir(null);
   rendre();
 
-  var info = document.getElementById('stockage');
-  try {
-    localStorage.setItem('cave.test', '1');
-    localStorage.removeItem('cave.test');
-    info.textContent = 'Enregistré dans ce navigateur. Effacer les données du site supprime la cave.';
-  } catch (e) {
-    info.textContent = 'Ce navigateur refuse le stockage local : la cave ne survivra pas à la fermeture. Navigation privée ?';
-  }
 })();
 </script>
 <script>

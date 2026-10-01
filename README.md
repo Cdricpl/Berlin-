@@ -110,6 +110,28 @@ déjà remplie : les filtres et le plan resteraient vides pendant que le code,
 lui, aurait l'air correct. Le bouton *Réappliquer le relevé de référence* dans
 les réglages relance l'opération à la demande.
 
+## Si les bouteilles disparaissent
+
+Le stockage local d'un navigateur n'est pas un coffre-fort : un téléphone à
+court de place peut l'évincer, un nettoyage des données du site l'efface, et un
+appui malheureux sur *Vider la cave* aussi. Trois filets ont été tendus.
+
+**Stockage durable.** L'application demande au navigateur de marquer son
+stockage comme persistant, ce qui le met à l'abri des évictions automatiques.
+Les réglages disent si c'est accordé.
+
+**Sauvegarde automatique.** Chaque enregistrement recopie le dernier état non
+vide sous une seconde clé. Si la cave se retrouve vide, l'écran d'accueil
+propose de récupérer cette sauvegarde, en annonçant sa date et son nombre de
+références. Les réglages ont le même bouton.
+
+**Remise des manquantes.** *Remettre les bouteilles manquantes*, dans les
+réglages, rajoute les références du relevé absentes de la cave — sans toucher à
+celles qui y sont, sans créer de doublon, sans écraser une note.
+
+Cela ne dispense pas de l'export JSON, qui reste la seule copie qui survit à la
+perte du téléphone.
+
 ## Où sont les données
 
 Dans le stockage local du navigateur, sur cet appareil, et **nulle part

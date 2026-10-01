@@ -323,6 +323,16 @@ a{color:var(--wine);text-underline-offset:2px}
     <p class="tip">Les estimations viennent des tarifs courants en Belgique pour ces cuvées, arrondis. Elles servent à savoir ce que représente la cave — pour une assurance, un partage, une succession — pas à spéculer. Chaque prix se corrige dans le formulaire.</p>
   </div>
 
+  <h2>Récupérer</h2>
+  <div class="card">
+    <div class="btnrow">
+      <button type="button" class="btn" id="restaurer">Remettre les bouteilles manquantes</button>
+      <button type="button" class="btn ghost" id="secours">Récupérer la sauvegarde</button>
+    </div>
+    <p class="tip" id="etat-secours"></p>
+    <p class="tip">« Remettre les bouteilles manquantes » rajoute les références du relevé absentes de la cave, sans toucher aux autres ni créer de doublon.</p>
+  </div>
+
   <h2>Compléter</h2>
   <div class="card">
     <div class="btnrow">
@@ -371,6 +381,7 @@ a{color:var(--wine);text-underline-offset:2px}
      relevé — accords, apogées, emplacements, photos — n'atteindraient jamais
      une cave déjà remplie, et les filtres comme le plan resteraient vides. */
   var VERSION = 4;
+  var SECOURS = 'cave.secours';
   var ANNEE = new Date().getFullYear();
   var COULEURS = {rouge:'Rouge', blanc:'Blanc', rose:'Rosé', bulles:'Bulles'};
   var ACCORDS = {aperitif:'Apéritif', poisson:'Poisson', 'viande-blanche':'Viande blanche',
@@ -499,6 +510,25 @@ a{color:var(--wine);text-underline-offset:2px}
     return { bouteilles: touchees, champs: champsRemplis };
   }
 
+  /* Remet les références du relevé qui ne sont plus dans la cave, sans
+     toucher à celles qui y sont et sans créer de doublon. */
+  function restaurer(){
+    var presentes = {};
+    cave.forEach(function(b){ presentes[cle(b.nom, b.producteur)] = true; });
+    var ajoutees = 0;
+    DEPART.forEach(function(m){
+      if (presentes[cle(m.nom, m.producteur)]) return;
+      var b = { id: id() };
+      champs.forEach(function(c){ b[c] = m[c] == null ? '' : m[c]; });
+      b.quantite = m.quantite == null ? 1 : m.quantite;
+      b.accord = m.accord || '';
+      b.photo = ETIQUETTES[m.nom] ? 'etiquettes/' + ETIQUETTES[m.nom] + '.jpg' : '';
+      cave.push(b);
+      ajoutees++;
+    });
+    return ajoutees;
+  }
+
   function charger(){
     DEPART.forEach(function(m){
       var b = {id: id()};
@@ -530,6 +560,15 @@ a{color:var(--wine);text-underline-offset:2px}
   function ecrire(){
     try {
       localStorage.setItem(CLE, JSON.stringify({ v: VERSION, bouteilles: cave }));
+      /* Copie de secours du dernier état non vide. Une cave effacée par
+         mégarde, ou vidée par le navigateur, reste ainsi récupérable. */
+      if (cave.length) {
+        try {
+          localStorage.setItem(SECOURS, JSON.stringify({
+            date: new Date().toISOString(), bouteilles: cave
+          }));
+        } catch (e) {}
+      }
       return true;
     } catch (e) {
       dire('Enregistrement impossible — stockage plein ou navigation privée');
@@ -538,6 +577,15 @@ a{color:var(--wine);text-underline-offset:2px}
   }
 
   function id(){ return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  function lireSecours(){
+    try {
+      var brut = localStorage.getItem(SECOURS);
+      if (!brut) return null;
+      var d = JSON.parse(brut);
+      return (d && Array.isArray(d.bouteilles) && d.bouteilles.length) ? d : null;
+    } catch (e) { return null; }
+  }
 
   /* Où en est la bouteille par rapport à sa fenêtre de dégustation. */
   function apogee(b){
@@ -739,9 +787,25 @@ a{color:var(--wine);text-underline-offset:2px}
       var row = document.createElement('div');
       row.className = 'btnrow';
       row.style.justifyContent = 'center';
+
+      var sec = lireSecours();
+      if (sec) {
+        var jour = new Date(sec.date);
+        var r = document.createElement('button');
+        r.type = 'button';
+        r.className = 'btn';
+        r.textContent = 'Récupérer la sauvegarde — ' + sec.bouteilles.length + ' références du '
+          + jour.toLocaleDateString('fr-BE', {day:'numeric', month:'long'});
+        r.addEventListener('click', function(){
+          cave = sec.bouteilles;
+          if (ecrire()) { dire(cave.length + ' références récupérées'); rendre(); }
+        });
+        row.appendChild(r);
+      }
+
       var b = document.createElement('button');
       b.type = 'button';
-      b.className = 'btn';
+      b.className = sec ? 'btn ghost' : 'btn';
       b.textContent = 'Charger les ' + DEPART.length + ' références photographiées';
       b.addEventListener('click', charger);
       row.appendChild(b);
@@ -768,10 +832,37 @@ a{color:var(--wine);text-underline-offset:2px}
 
   /* Les photos sont de loin ce qui pèse : la jauge rend la limite visible
      avant qu'elle ne se rappelle au mauvais moment. */
+  /* Sans cela, un navigateur de téléphone peut évincer le stockage d'un site
+     quand la place manque — et la cave disparaît sans prévenir. */
+  function demanderPersistance(){
+    if (!navigator.storage || !navigator.storage.persist) return;
+    navigator.storage.persisted().then(function (deja) {
+      if (deja) { marquerPersistance(true); return; }
+      navigator.storage.persist().then(marquerPersistance).catch(function(){});
+    }).catch(function(){});
+  }
+
+  function marquerPersistance(ok){
+    var el = document.getElementById('etat-secours');
+    if (!el) return;
+    var sec = lireSecours();
+    var bouts = [];
+    bouts.push(ok ? 'Stockage marqué comme durable : le navigateur ne videra pas la cave pour faire de la place.'
+                  : 'Le navigateur n\'a pas accordé de stockage durable : il peut vider la cave s\'il manque de place. Exportez régulièrement.');
+    if (sec) {
+      bouts.push('Dernière sauvegarde automatique : ' + sec.bouteilles.length + ' références, le '
+        + new Date(sec.date).toLocaleDateString('fr-BE', {day:'numeric', month:'long', year:'numeric'}) + '.');
+    } else {
+      bouts.push('Aucune sauvegarde automatique pour l\'instant.');
+    }
+    el.textContent = bouts.join(' ');
+  }
+
   function jauge(){
     var barre = document.getElementById('jauge-barre');
     var texte = document.getElementById('stockage');
     if (!barre || !texte) return;
+    marquerPersistance(persistanceOk);
     var brut;
     try { brut = localStorage.getItem(CLE) || ''; }
     catch (e) {
@@ -1180,6 +1271,21 @@ a{color:var(--wine);text-underline-offset:2px}
     this.value = '';
   });
 
+  document.getElementById('restaurer').addEventListener('click', function(){
+    var n = restaurer();
+    if (!n) { dire('Toutes les références du relevé sont déjà là'); return; }
+    if (ecrire()) { dire(n + ' références remises'); rendre(); ouvrir('t-cave'); }
+  });
+
+  document.getElementById('secours').addEventListener('click', function(){
+    var sec = lireSecours();
+    if (!sec) { dire('Aucune sauvegarde disponible'); return; }
+    if (cave.length && !confirm('Remplacer les ' + cave.length + ' références actuelles par la sauvegarde de '
+        + sec.bouteilles.length + ' ?')) return;
+    cave = sec.bouteilles;
+    if (ecrire()) { dire(cave.length + ' références récupérées'); rendre(); ouvrir('t-cave'); }
+  });
+
   document.getElementById('completer').addEventListener('click', function(){
     if (!cave.length) { dire('La cave est vide'); return; }
     var bilan = completer();
@@ -1247,6 +1353,12 @@ a{color:var(--wine);text-underline-offset:2px}
   window.__caveDire = dire;
 
   /* ---------- démarrage ---------- */
+  var persistanceOk = false;
+  if (navigator.storage && navigator.storage.persisted) {
+    navigator.storage.persisted().then(function(v){ persistanceOk = v; marquerPersistance(v); }).catch(function(){});
+  }
+  demanderPersistance();
+
   try { history.replaceState({ vue: 't-cave' }, ''); } catch (e) {}
 
   cave = lire();
